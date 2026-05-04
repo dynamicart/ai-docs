@@ -75,10 +75,10 @@ An **agentic AI development environment** is required to run the workflows — s
 
 These tools can read `.agents/workflows/` and execute `/` commands directly in the chat.
 
-### 2. Clone the repo
+### 2. Clone or download the repo
 
 ```bash
-git clone https://github.com/your-username/aidocs.git my-project
+git clone https://github.com/dynamicart/ai-docs.git my-project
 cd my-project
 ```
 
