@@ -1,6 +1,7 @@
 ---
+type: "Project Overview"
 project: "project-name"
-type: "project-overview"
+description: "One-sentence summary of what the project is and who it's for."
 status: "active"
 # status values: planning | active | maintenance | closed | on-hold
 created: 2025-01-01
@@ -20,6 +21,10 @@ links:
 ---
 
 # Project Name — Overview
+
+> Note (OKF): this is the rich, human-facing project map (Dataview-enabled). The lean,
+> frontmatter-minimal OKF entry point for the bundle is `_docs/index.md` — see there for
+> the plain link-list a generic OKF consumer would start from.
 
 ## What is it for?
 
@@ -45,12 +50,17 @@ links:
 
 ```
 project-name/
+├── agent.md
 ├── _docs/
+│   ├── index.md               ← OKF bundle root index (§6)
+│   ├── log.md                 ← OKF chronological history (§7)
 │   ├── tasks/
+│   │   └── index.md
 │   ├── journal/
+│   │   └── index.md
 │   ├── PROJECT-OVERVIEW.md   ← this file
 │   └── DECISIONS-LOG.md
-├── ...
+└── ...
 ```
 
 ## Active tasks
@@ -91,6 +101,7 @@ LIMIT 10
 ## Log (recent changes)
 
 > Brief entries on what changed in the project. Date + one line.
+> For the full, OKF-conformant chronological record see `_docs/log.md`.
 
 | Date | Change |
 |-------|----------|

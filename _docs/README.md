@@ -6,18 +6,24 @@ type: "meta-docs"
 
 This folder records the project's development process: design decisions, task solutions, and distilled summaries of chat sessions with the AI agent. This knowledge base serves as the foundation for the `agent.md` (Shared Brain) file located in the root directory.
 
+Since v0.2, `_docs/` is also an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)-conformant knowledge bundle: every TASK/JOURNAL/ADR is a self-describing concept (YAML frontmatter + markdown body), cross-linked with plain markdown links, and browsable through `index.md` files — so, besides Obsidian, any generic OKF consumer (e.g. the [reference visualizer](https://github.com/GoogleCloudPlatform/knowledge-catalog/tree/main/okf)) can read it without translation.
+
 ## Folder Structure
 
 ```
 _docs/
 ├── README.md                    ← this file
-├── PROJECT-OVERVIEW.md          ← [OPTIONAL/GENERATED] project map, active tasks
+├── index.md                     ← [OKF] bundle root index (reserved filename, no frontmatter except okf_version)
+├── log.md                       ← [OKF] chronological history (reserved filename)
+├── PROJECT-OVERVIEW.md          ← [OPTIONAL/GENERATED] rich, human-facing project map (Dataview)
 ├── DECISIONS-LOG.md             ← ADR log (why and what decisions, ADR-NNN format)
 ├── tasks/                       ← Task-specific documents
+│   ├── index.md                 ← [OKF] directory index
 │   ├── TASK-001_name.md
 │   ├── TASK-002_name.md
 │   └── ...
 ├── journal/                     ← Distilled summaries of chat sessions
+│   ├── index.md                 ← [OKF] directory index
 │   ├── JOURNAL-YYYY-MM-DD-topic.md
 │   └── ...
 ├── arch/                        ← architecture, schemas, diagrams
@@ -26,7 +32,9 @@ _docs/
     ├── TASK-template.md
     ├── JOURNAL-template.md
     ├── PROJECT-OVERVIEW-template.md
-    └── DECISIONS-LOG-template.md
+    ├── DECISIONS-LOG-template.md
+    ├── INDEX-template.md        ← [OKF] template for any index.md
+    └── LOG-template.md          ← [OKF] template for any log.md
 ```
 
 ## Automated Workflow
@@ -52,11 +60,12 @@ Documentation is primarily managed by the agent (Antigravity) through `/` comman
 
 ## Documentation Rules
 
-Detailed rules are contained in `style-guide.md`.
+Detailed rules are contained in `style-guide.md` and `.agents/skills/documentation/SKILL.md`.
 
 - **Decisions:** Record every major technical decision in the form of an ADR (Architecture Decision Record) in the `DECISIONS-LOG.md` file (e.g., `ADR-001`).
 - **Code Comments:** "The Why, not the What". Use file headers and standard function documentation.
 - **Obsidian:** The `_docs/` folder can also be used as an Obsidian vault (with Dataview support).
+- **OKF:** every concept file's frontmatter starts with `type`; cross-references use bundle-relative markdown links (`/tasks/TASK-001_name.md`), never `[[wikilinks]]`; `index.md` and `log.md` are reserved filenames, never used for a concept document.
 
 ## File Naming Conventions
 
@@ -65,9 +74,13 @@ Detailed rules are contained in `style-guide.md`.
 | Task     | `TASK-NNN_name.md`           | `TASK-001_user-auth.md`           |
 | Journal  | `JOURNAL-YYYY-MM-DD-topic.md` | `JOURNAL-2025-01-15-auth-plan.md` |
 | ADR      | `ADR-NNN`                    | `ADR-001`                         |
+| Bundle index | `index.md`                | `_docs/index.md`, `_docs/tasks/index.md` |
+| Bundle log   | `log.md`                  | `_docs/log.md`                    |
 
 ## YAML Status Values
 
-**task.status:** `planning` · `in-progress` · `review` · `done` · `postponed`  
-**task.priority:** `critical` · `high` · `medium` · `low`  
-**journal.type:** `planning` · `debugging` · `review` · `decision` · `brainstorm`
+**\*.type (OKF, required):** `Task` · `Journal` · `Project Overview` · `Decisions Log`
+**task.status:** `planning` · `in-progress` · `review` · `done` · `postponed`
+**task.priority:** `critical` · `high` · `medium` · `low`
+**journal.journal_type** *(renamed from `journal.type` — see SKILL.md §4)*: `planning` · `debugging` · `review` · `decision` · `brainstorm`
+**adr.Status:** `accepted` · `deprecated` · `superseded`

@@ -12,9 +12,11 @@ Create a new TASK file.
 
 1. Read the `_docs/_templates/TASK-template.md` file.
 2. Determine the next `TASK-NNN` number and the filename based on the skill rules.
-3. Fill in the YAML frontmatter (status: "planning", date: today, title: [title]).
+3. Fill in the YAML frontmatter (`type: Task`, status: "planning", date: today, title: [title], `generated: { by: "agent:<this-agent-id>", at: "<now, ISO8601>" }`).
 4. Fill in the Goal and Context sections based on the current chat context.
-5. Do not ask back — create the file, then output the filename.
+5. Use bundle-relative markdown links (`/tasks/...`, `/journal/...`), never `[[wikilinks]]`, when referencing other concepts.
+6. Update `_docs/tasks/index.md` (add the new task under "Active") and append a `_docs/log.md` entry.
+7. Do not ask back — create the file, then output the filename.
 
 ### /task-new from-journal
 

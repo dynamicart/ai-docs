@@ -1,17 +1,20 @@
 ---
 name: Documentation Workflow
-description: Rules and logic for creating, managing, and closing project documentation (tasks, journals, ADRs). Activate this skill when creating new tasks, distilling chat sessions into journals, or closing tasks to ensure consistency with the project's documentation standards.
+description: Rules and logic for creating, managing, and closing project documentation (tasks, journals, ADRs), conformant with the Open Knowledge Format (OKF v0.2). Activate this skill when creating new tasks, distilling chat sessions into journals, closing tasks, or maintaining index.md/log.md files.
 ---
 
 # Documentation Workflow Skill
 
 This skill contains the common logic and ruleset required for the project's documentation processes.
 
+**OKF conformance.** The `_docs/` folder is treated as an [OKF v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)-conformant knowledge bundle: every TASK / JOURNAL / ADR is a *concept* (one markdown file = one YAML-frontmatter + body document), cross-linked with standard markdown links, discoverable through `index.md`, and historized through `log.md`. This does not replace the existing workflow fields (`status`, `priority`, etc.) — OKF fields are added alongside them, never in place of them.
+
 ## When to use this skill?
 - When creating a new task (TASK).
 - When distilling the essence of a chat session (JOURNAL).
 - When closing a task (TASK-CLOSE).
-- When updating the project overview (PROJECT-OVERVIEW) or the decisions log (DECISIONS-LOG).
+- When creating or updating a document in the `_docs/` folder.
+- When updating the project overview (PROJECT-OVERVIEW), the decisions log (DECISIONS-LOG), or the bundle's `index.md` / `log.md` files.
 
 ## How to use?
 
@@ -20,6 +23,7 @@ Every document (TASK, JOURNAL) filename contains a slug.
 - **Format:** 2-5 words, separated by hyphens.
 - **Characters:** Lowercase only, without accents (e.g., á -> a, ő -> o).
 - **Example:** `database-migration`, `user-auth-fix`.
+- **Full filename pattern:** `TASK-NNN_slug.md` / `JOURNAL-YYYY-MM-DD-slug.md`. Always resolve the *actual* filename by listing the target directory before linking to it — never guess it from the ID alone.
 
 ### 2. TASK numbering logic
 TASK identifiers are in the format `TASK-NNN`.
@@ -32,49 +36,112 @@ TASK identifiers are in the format `TASK-NNN`.
 Journals are date-based: `JOURNAL-YYYY-MM-DD-slug.md`.
 If multiple Journals are created in a single day, mark the difference in the slug (e.g., `-2`, `-continuation`).
 
-### 4. YAML Frontmatter schemas
+### 4. YAML Frontmatter schemas (OKF v0.2-conformant)
+
+Every concept's frontmatter starts with the OKF-required `type` field — the concept's category, used by OKF-generic consumers for routing/filtering. This is distinct from the project's own `status` field (workflow state) and from JOURNAL's `journal_type` (session kind, see below).
 
 **TASK schema:**
 ```yaml
+type: Task                         # REQUIRED (OKF) — concept category, do not repurpose
 id: TASK-NNN
 title: "Title"
+description: "One-sentence summary of what this task achieves."   # OKF recommended
 project: "project-name"
 status: "planning" # planning | in-progress | review | done | postponed
 priority: "medium" # critical | high | medium | low
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
-completed: 
+completed:
+resource: ""                       # optional (OKF) — canonical URI: PR / branch / issue link
 tags: []
-journals: [] 
+journals: []
 related_tasks: []
-complexity: "medium" # small | medium | large | epic
+complexity: "medium"
+# complexity values: small | medium | large | epic
+generated: { by: "agent:<agent-id>", at: "<ISO8601>" }   # OKF v0.2 — who/when produced this file
+verified: []                       # OKF v0.2 — filled at /task-close on human approval, see §9
 ```
 
 **JOURNAL schema:**
 ```yaml
+type: Journal                      # REQUIRED (OKF) — concept category
 id: JOURNAL-YYYY-MM-DD-slug
+title: "Short topic description"   # OKF recommended, mirrors `topic`
+description: "One-sentence summary of the session outcome."
 date: YYYY-MM-DD
 project: "project-name"
 topic: "Topic"
-type: "planning" # planning | debugging | review | decision | brainstorm
+journal_type: "planning"           # renamed from the old `type` field
+# journal_type values: planning | debugging | review | decision | brainstorm
 duration_approx: "N min"
 related_tasks: []
 participants: [human, ai-agent]
 outcome: "Summary"
+tags: []
+generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
 ```
 
-### 5. Distillation rules (Journal)
+> ⚠️ **Breaking rename:** the old `type: "planning"` field (session kind) is now `journal_type`. `type` is reserved for the OKF concept category (`Journal`). See §10 for migrating pre-existing journals.
+
+### 5. Cross-linking (OKF-conformant — replaces Obsidian wikilinks)
+
+Every reference between concepts MUST use a standard markdown link, bundle-relative to `_docs/` (leading `/`) — NOT the `[[wikilink]]` syntax:
+
+- ✅ `[TASK-014](/tasks/TASK-014_add-auth.md)`
+- ✅ `[ADR-003](/DECISIONS-LOG.md#adr-003)`
+- ❌ `[[TASK-014]]` — Obsidian-only syntax; invisible to any generic OKF consumer (including the OKF reference visualizer), so it breaks the cross-link graph outside Obsidian.
+
+Obsidian renders standard markdown links and still tracks them for backlinks, so this loses nothing on the Obsidian side while gaining OKF conformance elsewhere.
+
+### 6. index.md maintenance (OKF reserved filename, §6 of the spec)
+
+`index.md` carries no frontmatter — its body is a flat link list grouped under headings. Update the relevant directory's `index.md` whenever a concept is added, closed, or renamed:
+
+- New/closed TASK → update `_docs/tasks/index.md`
+- New JOURNAL → update `_docs/journal/index.md`
+- Either → update root `_docs/index.md` if it changes what's currently active
+
+Format (see `_docs/_templates/INDEX-template.md`):
+```markdown
+# Tasks
+
+* [TASK-014 — Add auth](TASK-014_add-auth.md) - in-progress, high priority
+* [TASK-013 — Fix migration](TASK-013_fix-migration.md) - done
+```
+
+### 7. log.md maintenance (OKF reserved filename, §7 of the spec)
+
+`_docs/log.md` is the OKF-reserved chronological history file, separate from `DECISIONS-LOG.md` (which stays the detailed ADR archive). Append one line per meaningful change, newest date-group first, on every `/task-new`, `/task-close`, and `/journal-distill` (see `_docs/_templates/LOG-template.md`):
+
+```markdown
+## 2026-08-06
+* **Creation**: Opened [TASK-014](tasks/TASK-014_add-auth.md).
+* **Update**: Closed [TASK-013](tasks/TASK-013_fix-migration.md).
+```
+
+### 8. Distillation rules (Journal)
 During `/journal-distill`, the following must be extracted:
 - **Context:** Why did the conversation start? (Status description, not "the user asked").
 - **Options:** Investigated alternatives in a table (advantage, disadvantage, decision).
 - **Decisions:** What was finalized? (**[Subject]:** Rationale).
 - **Open Questions:** What remains unanswered? (In question form).
 - **Next Steps:** Specific actions.
+- **Sources (OKF v0.2):** If the journal references external material (docs, articles, code outside the repo), add a `sources` frontmatter entry instead of a loose link, and cite it in the body with `[^source-id]`:
+```yaml
+sources:
+  - { id: okf-spec, resource: "https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md", title: "OKF v0.2 Spec", last_modified: 2026-07-24 }
+```
 
-### 6. Closing rules (Task Close)
+### 9. Closing rules (Task Close)
 During `/task-close`:
 1. `status` -> `done`, `completed` -> today's date.
 2. Fill in the `Result` section (in past tense, factually).
 3. Fill in the "Agent summary" block at the end of the file.
-4. If an ADR-level decision was made, update the `DECISIONS-LOG.md`.
-5. Ensure that log-like entries are not rewritten retroactively.
+4. If an ADR-level decision was made, update `DECISIONS-LOG.md` (per-entry `Status:` becomes `accepted` | `deprecated` | `superseded`).
+5. **On human approval of the close**, append to `verified`: `{ by: "human:<username>", at: "<ISO8601>" }`. An agent must never self-verify its own task — this field exists specifically to make the project's "merges are always human-approved" rule queryable, not just documented.
+6. Update `_docs/tasks/index.md` and append the corresponding `log.md` entry.
+7. Ensure log-like entries (`log.md`, journal history) are not rewritten retroactively.
+
+### 10. Migrating existing documents (optional, non-blocking)
+
+Files written before this OKF pass (missing `type`, `generated`, etc.) remain fully valid — OKF conformance (§9 of the spec) requires only a non-empty `type` field, and consumers MUST tolerate missing optional fields. Backfill `type` / `journal_type` opportunistically when a file is next edited by an agent; do not batch-rewrite the whole corpus in one pass.

@@ -1,10 +1,13 @@
 ---
+type: Journal
 id: JOURNAL-YYYY-MM-DD-topic
+title: "Short topic description"
+description: "One-sentence summary of the session outcome."
 date: YYYY-MM-DD
 project: "project-name"
 topic: "Short topic description"
-type: "planning"
-# type values: planning | debugging | review | decision | brainstorm
+journal_type: "planning"
+# journal_type values: planning | debugging | review | decision | brainstorm
 duration_approx: "30 min"
 related_tasks:
   - TASK-000
@@ -14,6 +17,9 @@ participants:
 tags:
   - planning
 outcome: "short summary in one sentence"
+generated: { by: "agent:manual", at: "YYYY-MM-DDT00:00:00Z" }
+# sources:                              # OKF v0.2, optional — external material this journal draws on
+#   - { id: source-slug, resource: "https://...", title: "...", last_modified: YYYY-MM-DD }
 ---
 
 # JOURNAL: YYYY-MM-DD — Topic Name
@@ -57,9 +63,11 @@ outcome: "short summary in one sentence"
 
 ## Related Materials
 
-- Task: [[TASK-000]]
-- Previous journal: [[JOURNAL-YYYY-MM-DD-previous]]
+- Task: [TASK-000](/tasks/TASK-000.md)
+- Previous journal: [JOURNAL-YYYY-MM-DD-previous](/journal/JOURNAL-YYYY-MM-DD-previous.md)
 - Spec:
+
+<!-- If sources: was used in frontmatter, cite it inline where referenced, e.g. "...per policy[^source-slug]." -->
 
 ## AI Design Summary
 

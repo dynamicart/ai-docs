@@ -1,6 +1,8 @@
 ---
+type: Task
 id: TASK-000
 title: "Short Task Name"
+description: "One-sentence summary of what this task achieves."
 project: "project-name"
 status: "planning"
 # status values: planning | in-progress | review | done | postponed
@@ -9,6 +11,7 @@ priority: "medium"
 created: 2025-01-01
 updated: 2025-01-01
 completed:
+resource: ""
 tags:
   - development
 journals:
@@ -16,6 +19,8 @@ journals:
 related_tasks: []
 complexity: "medium"
 # complexity values: small | medium | large | epic
+generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
+verified: []
 ---
 
 # TASK-000: Short Task Name
@@ -32,9 +37,9 @@ complexity: "medium"
 
 > If there was a separate planning session or spec file, refer to it:
 >
-> - Session: [[JOURNAL-2025-01-01-topic]]
+> - Session: [JOURNAL-2025-01-01-topic](/journal/JOURNAL-2025-01-01-topic.md)
 > - Spec file: `_docs/specs/feature-xyz.md`
-> - Related decision: [[DECISIONS-LOG#ADR-NNN]]
+> - Related decision: [ADR-NNN](/DECISIONS-LOG.md#adr-nnn)
 
 ## Approach / Plan
 

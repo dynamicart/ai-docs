@@ -12,9 +12,11 @@ Distill the essence of the current chat session into a JOURNAL file.
 
 1. Read the `_docs/_templates/JOURNAL-template.md` file.
 2. Determine the filename based on the skill rules: `_docs/journal/JOURNAL-YYYY-MM-DD-topic.md`.
-3. Fill in the YAML frontmatter and sections according to the skill's distillation rules.
-4. If there is a related TASK reference in the context, link it in the `related_tasks` field and under "Related materials".
-5. Do not ask back — create the file immediately.
+3. Fill in the YAML frontmatter and sections according to the skill's distillation rules — including `type: Journal`, `journal_type` (the old session-kind field), and `generated: { by: "agent:<this-agent-id>", at: "<now, ISO8601>" }`.
+4. If there is a related TASK reference in the context, link it in the `related_tasks` field and under "Related materials" using a bundle-relative markdown link (`/tasks/TASK-NNN_slug.md`), never a `[[wikilink]]`.
+5. If external material was used, add a `sources` frontmatter entry and cite it inline with `[^source-id]` instead of a loose link.
+6. Update `_docs/journal/index.md` and append a `_docs/log.md` entry.
+7. Do not ask back — create the file immediately.
 
 ### AI Distillation Guide (Briefly)
 

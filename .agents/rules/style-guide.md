@@ -56,4 +56,13 @@ Where the text is too complex, use Mermaid diagrams.
 At the end of every task, the agent should offer (if it's clearly appropriate):
 - The `/journal-distill` command to close the session.
 - The `/task-close` command to archive the task.
-- Checking the up-to-dateness of `PROJECT-OVERVIEW.md`.
+- Checking the up-to-dateness of `PROJECT-OVERVIEW.md` and `_docs/index.md`.
+
+### 6. OKF Conformance
+
+`_docs/` is an [Open Knowledge Format v0.2](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)-conformant knowledge bundle. Full rules live in the **Documentation Workflow Skill** (`.agents/skills/documentation/SKILL.md`); the short version:
+
+- Every TASK/JOURNAL/PROJECT-OVERVIEW frontmatter block starts with a `type` field (`Task`, `Journal`, `Project Overview`, …) — this is the one OKF-required field.
+- `index.md` and `log.md` are reserved filenames (spec §3.1) — never used for a concept document, always maintained per §6/§7 of the skill.
+- Cross-references between concepts use standard bundle-relative markdown links (`[Title](/tasks/TASK-NNN_slug.md)`), never Obsidian `[[wikilinks]]`.
+- OKF fields are additive: existing `status`, `priority`, and other project-specific frontmatter keys stay exactly as they are.

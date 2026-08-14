@@ -7,11 +7,15 @@ Read the contents of the `_docs/` folder and regenerate the `agent.md` file in t
 ## Source files (read in order):
 
 1. **_docs/_templates/AGENT-template.md** — Preserving the basic structure and manual sections.
-2. **_docs/tasks/*.md** — All tasks (status, priority, Agent summary).
-3. **_docs/journal/*.md** — The last 3 journals (newest by date).
-4. **_docs/DECISIONS-LOG.md** — ADR blocks (only the last 10-15).
-5. **_docs/arch/*.md** and **_docs/spec/*.md** — Architectural and business context.
-6. **_docs/README.md** — Project description and tech stack basis.
+2. **_docs/index.md** — OKF bundle root index; sanity-check that nothing listed there is missing below.
+3. **_docs/tasks/*.md** (and `_docs/tasks/index.md`) — All tasks (status, priority, Agent summary).
+4. **_docs/journal/*.md** (and `_docs/journal/index.md`) — The last 3 journals (newest by date).
+5. **_docs/DECISIONS-LOG.md** — ADR blocks (only the last 10-15).
+6. **_docs/log.md** — Last 5-10 entries, for a quick "what changed recently" cross-check against the journals.
+7. **_docs/arch/*.md** and **_docs/spec/*.md** — Architectural and business context.
+8. **_docs/README.md** — Project description and tech stack basis.
+
+Note: `/agent-sync` never writes to `_docs/index.md` or `_docs/log.md` — those are maintained by `/task-new`, `/task-close`, `/journal-distill`, and `/project-sync`. It only reads them.
 
 ## Generation Rules:
 

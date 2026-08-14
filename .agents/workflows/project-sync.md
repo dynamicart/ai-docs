@@ -34,4 +34,5 @@ Before starting the generation, **ask the user** whether to:
 1. User approval/choice (Dataview vs Static).
 2. Data collection and processing.
 3. Create or update `_docs/PROJECT-OVERVIEW.md`.
-4. Feedback: "Project overview updated. [N] active tasks, [N] closed milestones displayed."
+4. Create or update `_docs/index.md` — the lean, frontmatter-minimal OKF bundle entry point (spec §6). Keep the section list (`tasks/`, `journal/`, `arch/`, `spec/`) and root-document links in sync with what actually exists; this file stays a plain link list, no Dataview, no prose beyond one intro line.
+5. Feedback: "Project overview updated. [N] active tasks, [N] closed milestones displayed. `_docs/index.md` refreshed."
