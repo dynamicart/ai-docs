@@ -15,6 +15,7 @@ This skill contains the common logic and ruleset required for the project's docu
 - When closing a task (TASK-CLOSE).
 - When creating or updating a document in the `_docs/` folder.
 - When updating the project overview (PROJECT-OVERVIEW), the decisions log (DECISIONS-LOG), or the bundle's `index.md` / `log.md` files.
+- When creating or syncing a module document (MODULE) via `/module-sync` — see §11.
 
 ## How to use?
 
@@ -83,6 +84,26 @@ generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
 
 > ⚠️ **Breaking rename:** the old `type: "planning"` field (session kind) is now `journal_type`. `type` is reserved for the OKF concept category (`Journal`). See §10 for migrating pre-existing journals.
 
+**MODULE schema** (durable code-unit reference, see §11):
+```yaml
+type: Module                       # REQUIRED (OKF) — concept category
+id: MODULE-slug
+title: "Module Name"
+description: "One-sentence summary of this module's responsibility."
+project: "project-name"
+status: "active"                   # active | deprecated | planned
+owner: ""
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+stale_after: 90                    # days since last full human verification before needs-review
+tags: [module]
+related_modules: []
+related_tasks: []
+related_adrs: []
+generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
+verified: []                       # same shape as TASK.verified — never self-verified by an agent
+```
+
 ### 5. Cross-linking (OKF-conformant — replaces Obsidian wikilinks)
 
 Every reference between concepts MUST use a standard markdown link, bundle-relative to `_docs/` (leading `/`) — NOT the `[[wikilink]]` syntax:
@@ -99,6 +120,7 @@ Obsidian renders standard markdown links and still tracks them for backlinks, so
 
 - New/closed TASK → update `_docs/tasks/index.md`
 - New JOURNAL → update `_docs/journal/index.md`
+- New/deprecated MODULE → update `_docs/modules/index.md` (manually — `/module-sync` does not auto-maintain this, see §11)
 - Either → update root `_docs/index.md` if it changes what's currently active
 
 Format (see `_docs/_templates/INDEX-template.md`):
@@ -118,6 +140,10 @@ Format (see `_docs/_templates/INDEX-template.md`):
 * **Creation**: Opened [TASK-014](tasks/TASK-014_add-auth.md).
 * **Update**: Closed [TASK-013](tasks/TASK-013_fix-migration.md).
 ```
+
+> `/module-sync` does NOT append to `log.md` — module documents are durable references, not
+> dated events; a module update is recorded in the module file's own "Change log" section
+> instead (see §11).
 
 ### 8. Distillation rules (Journal)
 During `/journal-distill`, the following must be extracted:
@@ -141,7 +167,20 @@ During `/task-close`:
 5. **On human approval of the close**, append to `verified`: `{ by: "human:<username>", at: "<ISO8601>" }`. An agent must never self-verify its own task — this field exists specifically to make the project's "merges are always human-approved" rule queryable, not just documented.
 6. Update `_docs/tasks/index.md` and append the corresponding `log.md` entry.
 7. Ensure log-like entries (`log.md`, journal history) are not rewritten retroactively.
+8. `/task-close` never triggers `/module-sync` — module documents are only touched by explicit, manual invocation (see §11).
 
 ### 10. Migrating existing documents (optional, non-blocking)
 
 Files written before this OKF pass (missing `type`, `generated`, etc.) remain fully valid — OKF conformance (§9 of the spec) requires only a non-empty `type` field, and consumers MUST tolerate missing optional fields. Backfill `type` / `journal_type` opportunistically when a file is next edited by an agent; do not batch-rewrite the whole corpus in one pass.
+
+### 11. Module documents (MODULE) and `/module-sync`
+
+`_docs/modules/*.md` files are a durable, code-organization layer distinct from TASK/JOURNAL: one file per logical module (e.g. `Billing`, `Notifications`), describing what it's responsible for, where it lives in the code, its cross-module dependencies, and — most importantly for an agent — its **invariants** (implicit rules the code doesn't enforce with an explicit error, but whose violation breaks something elsewhere).
+
+Key rules:
+- **Manual only.** Module files are created and updated exclusively through the explicit `/module-sync <module-name> [TASK-NNN]` command (see `.agents/workflows/module-sync.md`). No other workflow — including `/task-close` — creates, updates, or references a module file automatically.
+- **Delta, not regeneration.** `/module-sync` proposes section-level changes for human approval; it never rewrites a module file wholesale. The "Responsibility" and "Key decisions" sections are never agent-generated — human/ADR-sourced only.
+- **Invariant conflicts block.** If a proposed change appears to violate a documented invariant, the sync cannot complete without an explicit human decision (update the invariant, or fix the code) — this is a hard stop, the same severity class as the `verified` gate in §9.
+- **`verified` is file-level, not delta-level.** Approving a proposed delta does not mark the file `verified` — only a full, deliberate review of the entire module file does, appended in the same `{ by, at }` shape as `TASK.verified`.
+- **`stale_after` (default 90 days):** if no full human verification has occurred within this window, the module should be treated as `needs-review` — checked at sync time, not enforced by a background job.
+- **`_docs/modules/index.md` is maintained by hand**, not by `/module-sync` — see §6.

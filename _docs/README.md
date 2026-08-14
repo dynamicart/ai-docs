@@ -26,11 +26,16 @@ _docs/
 │   ├── index.md                 ← [OKF] directory index
 │   ├── JOURNAL-YYYY-MM-DD-topic.md
 │   └── ...
+├── modules/                     ← Durable per-module reference docs (manual, via /module-sync)
+│   ├── index.md                 ← directory index, hand-maintained
+│   ├── billing.md
+│   └── ...
 ├── arch/                        ← architecture, schemas, diagrams
 ├── spec/                        ← business specifications, stories
 └── _templates/
     ├── TASK-template.md
     ├── JOURNAL-template.md
+    ├── MODULE-template.md
     ├── PROJECT-OVERVIEW-template.md
     ├── DECISIONS-LOG-template.md
     ├── INDEX-template.md        ← [OKF] template for any index.md
@@ -57,6 +62,8 @@ Documentation is primarily managed by the agent (Antigravity) through `/` comman
 ### 4. Synchronization (Maintenance)
 - `/agent-sync`: Updates the `agent.md` file in the root so that every agent (e.g., Antigravity, OpenCode) sees the same updated context.
 - `/project-sync`: Generates or updates the `PROJECT-OVERVIEW.md` file if necessary (conditionally).
+- `/arch-sync`: Regenerates the `arch/*.md` live-reference files (stack, directory map, entry points, DB schema, config/env, integrations) from the actual codebase.
+- `/module-sync`: On-demand, **manual-only** delta sync for a single `modules/*.md` file against a given TASK's changes — never runs automatically. See `.agents/workflows/module-sync.md`.
 
 ## Documentation Rules
 
@@ -66,6 +73,7 @@ Detailed rules are contained in `style-guide.md` and `.agents/skills/documentati
 - **Code Comments:** "The Why, not the What". Use file headers and standard function documentation.
 - **Obsidian:** The `_docs/` folder can also be used as an Obsidian vault (with Dataview support).
 - **OKF:** every concept file's frontmatter starts with `type`; cross-references use bundle-relative markdown links (`/tasks/TASK-001_name.md`), never `[[wikilinks]]`; `index.md` and `log.md` are reserved filenames, never used for a concept document.
+- **Modules:** `modules/*.md` are durable, code-organization references (not archived like TASK/JOURNAL). They exist and update only through the explicit `/module-sync` command — no other workflow touches them automatically.
 
 ## File Naming Conventions
 
@@ -73,14 +81,16 @@ Detailed rules are contained in `style-guide.md` and `.agents/skills/documentati
 | -------- | ---------------------------- | --------------------------------- |
 | Task     | `TASK-NNN_name.md`           | `TASK-001_user-auth.md`           |
 | Journal  | `JOURNAL-YYYY-MM-DD-topic.md` | `JOURNAL-2025-01-15-auth-plan.md` |
+| Module   | `slug.md`                    | `billing.md`, `notifications.md`  |
 | ADR      | `ADR-NNN`                    | `ADR-001`                         |
 | Bundle index | `index.md`                | `_docs/index.md`, `_docs/tasks/index.md` |
 | Bundle log   | `log.md`                  | `_docs/log.md`                    |
 
 ## YAML Status Values
 
-**\*.type (OKF, required):** `Task` · `Journal` · `Project Overview` · `Decisions Log`
+**\*.type (OKF, required):** `Task` · `Journal` · `Module` · `Project Overview` · `Decisions Log`
 **task.status:** `planning` · `in-progress` · `review` · `done` · `postponed`
 **task.priority:** `critical` · `high` · `medium` · `low`
 **journal.journal_type** *(renamed from `journal.type` — see SKILL.md §4)*: `planning` · `debugging` · `review` · `decision` · `brainstorm`
 **adr.Status:** `accepted` · `deprecated` · `superseded`
+**module.status:** `active` · `deprecated` · `planned` (see SKILL.md §11)
