@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-08-18
+
+### Added
+- `/board-sync` workflow (`.agents/workflows/board-sync.md`) — fully rebuilds `_docs/BOARD.md`, a plaintext markdown kanban view of all TASK files grouped by `status` (`Planning` → `In Progress` → `Review` → `Done` → `Postponed`), each card showing priority/complexity and subtask progress. Pure read+render with no approval gate; safe to run automatically.
+- `BOARD-template.md` in `_docs/_templates/`, and the initial `_docs/BOARD.md`.
+
+### Changed
+- `TASK-template.md`: the "Approach / Plan" section is now a checkbox list (`- [ ] step`) instead of a numbered list — it doubles as the task's subtask tracker, read verbatim by `/board-sync`.
+- `task-new.md` and `task-close.md` now run `/board-sync` as their closing step, so the board always reflects the latest task state.
+- Documented the board schema and rules in the documentation skill (`.agents/skills/documentation/SKILL.md`, §12).
+- Updated `_docs/README.md` with the `BOARD.md` entry, the `/board-sync` command, and the updated naming conventions.
+- Updated the root `README.md` (folder structure, workflow command table, quick-start diagram) to catch it up with the `arch/`, `modules/`, and `BOARD.md` additions from this and the previous release.
+
 ## [0.1.1] - 2026-08-14
 
 ### Added

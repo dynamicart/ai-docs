@@ -16,7 +16,8 @@ Create a new TASK file.
 4. Fill in the Goal and Context sections based on the current chat context.
 5. Use bundle-relative markdown links (`/tasks/...`, `/journal/...`), never `[[wikilinks]]`, when referencing other concepts.
 6. Update `_docs/tasks/index.md` (add the new task under "Active") and append a `_docs/log.md` entry.
-7. Do not ask back — create the file, then output the filename.
+7. Run `/board-sync` to reflect the new task on `_docs/BOARD.md`.
+8. Do not ask back — create the file, then output the filename.
 
 ### /task-new from-journal
 

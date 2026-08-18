@@ -16,6 +16,7 @@ This skill contains the common logic and ruleset required for the project's docu
 - When creating or updating a document in the `_docs/` folder.
 - When updating the project overview (PROJECT-OVERVIEW), the decisions log (DECISIONS-LOG), or the bundle's `index.md` / `log.md` files.
 - When creating or syncing a module document (MODULE) via `/module-sync` — see §11.
+- When refreshing the task board via `/board-sync` — see §12.
 
 ## How to use?
 
@@ -62,6 +63,8 @@ complexity: "medium"
 generated: { by: "agent:<agent-id>", at: "<ISO8601>" }   # OKF v0.2 — who/when produced this file
 verified: []                       # OKF v0.2 — filled at /task-close on human approval, see §9
 ```
+
+The body's "Approach / Plan" section is a checkbox list (`- [ ] step`), not a numbered list — this doubles as the task's subtask tracker. `/board-sync` reads it verbatim to render subtask progress on `_docs/BOARD.md`, see §12. Check items off as work progresses; don't narrate progress elsewhere instead of checking the box.
 
 **JOURNAL schema:**
 ```yaml
@@ -123,6 +126,8 @@ Obsidian renders standard markdown links and still tracks them for backlinks, so
 - New/deprecated MODULE → update `_docs/modules/index.md` (manually — `/module-sync` does not auto-maintain this, see §11)
 - Either → update root `_docs/index.md` if it changes what's currently active
 
+`_docs/BOARD.md` is NOT an index — it is a full-rebuild live view maintained exclusively by `/board-sync`, see §12.
+
 Format (see `_docs/_templates/INDEX-template.md`):
 ```markdown
 # Tasks
@@ -141,9 +146,10 @@ Format (see `_docs/_templates/INDEX-template.md`):
 * **Update**: Closed [TASK-013](tasks/TASK-013_fix-migration.md).
 ```
 
-> `/module-sync` does NOT append to `log.md` — module documents are durable references, not
-> dated events; a module update is recorded in the module file's own "Change log" section
-> instead (see §11).
+> `/module-sync` and `/board-sync` do NOT append to `log.md` — module documents are durable
+> references, not dated events (a module update is recorded in the module file's own
+> "Change log" section, see §11); a board refresh has no history at all to record, it is
+> only ever a snapshot of "now" (see §12).
 
 ### 8. Distillation rules (Journal)
 During `/journal-distill`, the following must be extracted:
@@ -166,8 +172,9 @@ During `/task-close`:
 4. If an ADR-level decision was made, update `DECISIONS-LOG.md` (per-entry `Status:` becomes `accepted` | `deprecated` | `superseded`).
 5. **On human approval of the close**, append to `verified`: `{ by: "human:<username>", at: "<ISO8601>" }`. An agent must never self-verify its own task — this field exists specifically to make the project's "merges are always human-approved" rule queryable, not just documented.
 6. Update `_docs/tasks/index.md` and append the corresponding `log.md` entry.
-7. Ensure log-like entries (`log.md`, journal history) are not rewritten retroactively.
-8. `/task-close` never triggers `/module-sync` — module documents are only touched by explicit, manual invocation (see §11).
+7. Run `/board-sync` so `_docs/BOARD.md` reflects the closed task — see §12.
+8. Ensure log-like entries (`log.md`, journal history) are not rewritten retroactively.
+9. `/task-close` never triggers `/module-sync` — module documents are only touched by explicit, manual invocation (see §11).
 
 ### 10. Migrating existing documents (optional, non-blocking)
 
@@ -184,3 +191,15 @@ Key rules:
 - **`verified` is file-level, not delta-level.** Approving a proposed delta does not mark the file `verified` — only a full, deliberate review of the entire module file does, appended in the same `{ by, at }` shape as `TASK.verified`.
 - **`stale_after` (default 90 days):** if no full human verification has occurred within this window, the module should be treated as `needs-review` — checked at sync time, not enforced by a background job.
 - **`_docs/modules/index.md` is maintained by hand**, not by `/module-sync` — see §6.
+
+### 12. Task board (`BOARD.md`) and `/board-sync`
+
+`_docs/BOARD.md` is a plaintext markdown kanban view of all TASK files — columns are the fixed `task.status` values (`Planning` → `In Progress` → `Review` → `Done` → `Postponed`), each card shows priority/complexity and the "Approach / Plan" checklist as a subtask-progress indicator.
+
+Key rules:
+- **Fully generated, never hand-edited.** `_docs/BOARD.md` is entirely rebuilt on every `/board-sync` run, from live data in `_docs/tasks/*.md` — it carries no data of its own, and any manual edit to it is lost on the next sync.
+- **No approval gate.** Unlike `/module-sync`, `/board-sync` performs pure read+render with no interpretation or judgment — it never blocks, never asks for confirmation, and is safe to run automatically.
+- **Automatic trigger.** `/task-new` and `/task-close` both run `/board-sync` as a closing step (see §9 step 7). It is also callable manually at any time — e.g. after only checking a subtask box without otherwise touching status.
+- **Subtask source.** The "Approach / Plan" checkbox list (§4) is read verbatim — same text, same checked state — never summarized.
+- **Stale flag.** A task with `status: in-progress` whose `updated` is more than 14 days old gets a `⚠ stale` marker on its card — informational only, never blocking.
+- **No history.** `BOARD.md` reflects only the current moment; it is not appended to `log.md` (see §7) and carries no changelog of its own.

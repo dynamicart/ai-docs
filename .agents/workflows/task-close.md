@@ -17,7 +17,8 @@ Close the active task.
 5. **Decisions:** If an ADR-level decision was made, update `DECISIONS-LOG.md` (`Status:` accepted | deprecated | superseded).
 6. **Verification (OKF v0.2):** Ask the user to confirm the close explicitly. Only on their confirmation, append to `verified`: `{ by: "human:<username>", at: "<now, ISO8601>" }`. Never fill this in on the agent's own authority — it exists to make the "merges are always human-approved" rule queryable.
 7. **Bundle bookkeeping:** Move the task's entry in `_docs/tasks/index.md` from "Active" to "Done", and append a `_docs/log.md` entry.
-8. **Follow-up:** If open questions remain, suggest a new task.
+8. **Board:** Run `/board-sync` to reflect the closed task (and its final subtask state) on `_docs/BOARD.md`.
+9. **Follow-up:** If open questions remain, suggest a new task.
 
 ### /task-close with-journal [TASK-NNN]
 
@@ -65,6 +66,7 @@ Close the task AND distill a final journal as well.
     │   └─ no  → leave `verified` empty, do not close silently
     │
     ├─ Update _docs/tasks/index.md (Active → Done) + append _docs/log.md entry
+    ├─ Run /board-sync
     │
     └─ Output summary
 ```

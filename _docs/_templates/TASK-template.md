@@ -43,11 +43,15 @@ verified: []
 
 ## Approach / Plan
 
-> How will it be implemented? Main steps, components.
+> How will it be implemented? Main steps, components. Written as a checklist: this list
+> IS the task's subtask tracker — check items off as they're completed, don't just narrate
+> them in prose elsewhere. `/board-sync` reads this checklist verbatim to render subtask
+> progress on the board (see `_docs/BOARD.md`), so keep each item a short, checkable unit
+> of work, not a paragraph.
 
-1.
-2.
-3.
+- [ ]
+- [ ]
+- [ ]
 
 ## Decisions
 
