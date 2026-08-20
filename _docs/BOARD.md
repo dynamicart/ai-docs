@@ -4,7 +4,7 @@
 > (frontmatter for status/priority/complexity, the "Approach / Plan" checklist for
 > subtasks). Any manual edit here will be lost on the next sync.
 >
-> Last synced: 2026-08-18
+> Last synced: 2026-08-20
 
 ## Planning
 
@@ -20,7 +20,8 @@
 
 ## Done
 
-*(no tasks)*
+- [x] [TASK-001 — Standalone Docs & Board Viewer (folder-based HTML/JS tool)](tasks/TASK-001_standalone-docs-board-viewer.md) `medium · large` — 12/12 subtasks
+- [x] [TASK-002 — Multilingual UI for the Docs & Board Viewer (EN/HU toggle)](tasks/TASK-002_multilingual-viewer.md) `medium · small` — 7/7 subtasks
 
 ## Postponed
 

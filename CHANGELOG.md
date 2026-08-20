@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-08-20
+
+### Added
+- **Docs & Board Viewer** (`tool/docs-viewer.html`, TASK-001): a standalone, server-less, zero-dependency HTML/JS tool that loads a `_docs/` folder (drag&drop or folder picker) or a single `BOARD.md`, and renders three views — a kanban board (built from TASK frontmatter, with a switchable BOARD.md fallback), a markdown reader with in-app internal-link navigation (relative, `../` and root-relative links), and a global wildcard search with result highlighting. All processing happens client-side; nothing is uploaded.
+- **Bilingual UI (EN/HU)** (TASK-002): an in-file `I18N` dictionary with a `t()` helper and `data-i18n` attributes, a runtime language switch (default English) in the header's top-right corner, and `localStorage` persistence of the choice.
+- **DECISIONS-LOG.md** with the first architecture decision records: ADR-001 (kanban board data source), ADR-002 (folder-loading API choice), ADR-003 (localization approach).
+- `_docs/_archive/` directory for archived, non-indexed document backups.
+
+### Changed
+- The viewer's board source auto-switches: loading only a `BOARD.md` switches the kanban to BOARD.md mode; a BOARD.md-only source without a BOARD.md falls back to the TASK-file-based view.
+- The board-sync rules (5 fixed columns, subtask progress from the "Approach / Plan" checklist, 14-day stale flag) are now also reproduced client-side in the viewer's kanban view.
+- `TASK-001` and `TASK-002` completed and recorded as done on `_docs/BOARD.md`.
+
+### Fixed
+- A load-path regression in the viewer (`buildIndex` `ReferenceError` from a removed `var` declaration under strict mode) that prevented folder/BOARD.md loading; covered by new regression tests.
+
 ## [0.1.2] - 2026-08-18
 
 ### Added

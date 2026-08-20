@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Docs — Docs &amp; Board Viewer</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --panel: #161923;
+    --panel-alt: #1c202c;
+    --border: #262b3a;
+    --text: #e4e6ef;
+    --text-dim: #9098ab;
+    --text-faint: #5c6377;
+    --accent: #5b8cff;
+    --accent-dim: rgba(91,140,255,0.14);
+
+    --pri-critical: #ef4757;
+    --pri-high: #f2994a;
+    --pri-medium: #e0c341;
+    --pri-low: #6b7280;
+
+    --status-planning: #6b7280;
+    --status-progress: #5b8cff;
+    --status-review: #b56bff;
+    --status-done: #3fbf6f;
+    --status-postponed: #4a4f5e;
+
+    --type-task: #5b8cff;
+    --type-journal: #f2994a;
+    --type-module: #e0c341;
+    --type-arch: #b56bff;
+    --type-spec: #3fbf6f;
+    --type-other: #6b7280;
+  }
+
+  * { box-sizing: border-box; }
+
+  /* ---------- Scrollbars (dark-theme aligned) ---------- */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: #1a1e2b; }
+  ::-webkit-scrollbar-thumb {
+    background: #3b4357;
+    border-radius: 6px;
+    border: 2px solid #1a1e2b;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #4a5470; }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  * { scrollbar-width: thin; scrollbar-color: #3b4357 #1a1e2b; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 18px 24px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  header h1 { margin: 0 0 4px; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  header .meta { font-size: 12.5px; color: var(--text-dim); }
+
+  .head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .head-row h1 { margin: 0; }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
+
+  .file-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff; border: none;
+    padding: 8px 14px; border-radius: 7px; font-size: 13.5px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+  }
+  .file-btn:hover { filter: brightness(1.08); }
+  #folderInput { display: none; }
+
+  .filename-tag {
+    font-size: 12.5px; color: var(--text-dim); background: var(--panel-alt);
+    border: 1px solid var(--border); padding: 6px 10px; border-radius: 7px;
+    max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    background: var(--panel-alt); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 7px 14px; border-radius: 7px; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .board-src-wrap { display: flex; align-items: center; gap: 6px; }
+  .board-src-wrap label { font-size: 11.5px; color: var(--text-dim); }
+  .board-src-wrap select {
+    background: var(--panel-alt); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 8px; border-radius: 7px; font-size: 12.5px; outline: none;
+  }
+  .board-src-wrap select:focus { border-color: var(--accent); }
+
+  .lang-wrap { display: flex; align-items: center; gap: 6px; }
+  .lang-wrap label { font-size: 11.5px; color: var(--text-dim); }
+  .lang-wrap select {
+    background: var(--panel-alt); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 8px; border-radius: 7px; font-size: 12.5px; outline: none;
+  }
+  .lang-wrap select:focus { border-color: var(--accent); }
+
+  .search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 320px; }
+  .search-wrap input {
+    width: 100%; background: var(--panel-alt); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 12px 8px 30px; border-radius: 7px; font-size: 13.5px; outline: none;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap::before {
+    content: "\2315"; position: absolute; left: 10px; top: 50%;
+    transform: translateY(-50%); color: var(--text-faint); font-size: 15px; pointer-events: none;
+  }
+  .clear-search {
+    background: none; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 8px 12px; border-radius: 7px; font-size: 12.5px; cursor: pointer; display: none;
+  }
+  .clear-search.visible { display: inline-block; }
+
+  main { padding: 0; }
+
+  #dropzone {
+    border: 2px dashed var(--border); border-radius: 12px; margin: 24px; padding: 70px 20px;
+    text-align: center; color: var(--text-dim);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  #dropzone.dragover { border-color: var(--accent); background: rgba(91,140,255,0.07); color: var(--text); }
+  #dropzone h2 { font-size: 17px; color: var(--text); font-weight: 600; margin-bottom: 8px; }
+  #dropzone p { font-size: 13.5px; max-width: 480px; margin: 0 auto 6px; line-height: 1.5; }
+  #dropzone .dz-icon { font-size: 30px; margin-bottom: 12px; opacity: 0.7; }
+  #dropzone .dz-or { font-size: 11.5px; color: var(--text-faint); margin: 10px 0; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  #workspace { display: none; min-height: calc(100vh - 96px); }
+  #workspace.active { display: flex; }
+
+  /* ---------- Sidebar ---------- */
+
+  .sidebar {
+    width: 300px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--panel);
+    max-height: calc(100vh - 96px); overflow-y: auto; position: sticky; top: 96px; padding: 12px 0 24px;
+  }
+
+  .sidebar-filters { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 12px; border-bottom: 1px solid var(--border); }
+  .sidebar-filters select {
+    flex: 1; min-width: 120px; background: var(--panel-alt); border: 1px solid var(--border);
+    color: var(--text); padding: 6px 8px; border-radius: 7px; font-size: 12px; outline: none;
+  }
+  .sidebar-filters select:focus { border-color: var(--accent); }
+
+  .file-list { padding: 6px 0; }
+
+  .type-group-head {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-faint); padding: 10px 14px 4px;
+  }
+
+  .file-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 18px; cursor: pointer;
+    font-size: 13px; color: var(--text-dim); border-left: 2px solid transparent; line-height: 1.3;
+  }
+  .file-item:hover { background: var(--panel-alt); color: var(--text); }
+  .file-item.active { background: var(--accent-dim); color: var(--text); border-left-color: var(--accent); }
+  .file-item .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-item .tdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ---------- Content / views ---------- */
+
+  #content { flex: 1; padding: 20px 28px 60px; min-width: 0; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .view-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .view-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+  .view-head .view-count {
+    font-size: 11.5px; color: var(--text-dim); background: var(--panel-alt);
+    border: 1px solid var(--border); padding: 2px 8px; border-radius: 20px;
+  }
+
+  /* ---------- Kanban ---------- */
+
+  #board { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; align-items: flex-start; }
+
+  .column {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    min-width: 300px; max-width: 340px; flex: 1 0 300px;
+    display: flex; flex-direction: column; max-height: calc(100vh - 190px);
+  }
+  .column.postponed { opacity: 0.72; }
+
+  .column-head {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--panel); border-radius: 10px 10px 0 0;
+  }
+  .column-head .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+  .column-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    display: flex; align-items: center;
+  }
+  .column-count {
+    font-size: 11.5px; color: var(--text-dim); background: var(--panel-alt);
+    padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border);
+  }
+
+  .column-body { padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .column-empty, .no-match { color: var(--text-faint); font-size: 12.5px; text-align: center; padding: 20px 0; font-style: italic; }
+
+  .card {
+    background: var(--panel-alt); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 12px 10px; cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card.done .card-title { text-decoration: line-through; color: var(--text-dim); }
+
+  .card-id { font-size: 10.5px; font-weight: 700; color: var(--accent); letter-spacing: 0.03em; margin-bottom: 4px; }
+
+  .card-head-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .card-head-row .card-id { margin-bottom: 0; }
+  .card-open {
+    font-size: 11px; color: var(--text-faint); background: none; border: none; cursor: pointer;
+    padding: 2px 4px; border-radius: 4px; line-height: 1; user-select: none;
+  }
+  .card-open:hover { color: var(--text); background: var(--panel); }
+  .card-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; margin-bottom: 9px; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 9px; }
+  .badge { font-size: 10.5px; font-weight: 700; padding: 2px 7px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.03em; }
+  .badge.pri-critical { background: rgba(239,71,87,0.16); color: var(--pri-critical); }
+  .badge.pri-high { background: rgba(242,153,74,0.16); color: var(--pri-high); }
+  .badge.pri-medium { background: rgba(224,195,65,0.16); color: var(--pri-medium); }
+  .badge.pri-low { background: rgba(107,114,128,0.2); color: #9aa1ae; }
+  .badge.complexity { background: var(--panel); color: var(--text-dim); border: 1px solid var(--border); }
+  .badge.stale { background: rgba(242,153,74,0.16); color: var(--pri-high); }
+
+  .progress-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-dim); }
+  .progress-bar { flex: 1; height: 5px; background: var(--panel); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+  .progress-fill { height: 100%; background: var(--status-done); border-radius: 4px; }
+  .progress-fill.partial { background: var(--accent); }
+  .progress-fill.zero { background: transparent; }
+
+  .subtasks { margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--border); display: none; flex-direction: column; gap: 6px; }
+  .subtasks.open { display: flex; }
+  .subtask { font-size: 12px; line-height: 1.4; color: var(--text-dim); display: flex; gap: 6px; }
+  .subtask .mark { flex-shrink: 0; font-size: 12px; }
+  .subtask.done .mark { color: var(--status-done); }
+  .subtask.pending .mark { color: var(--text-faint); }
+  .subtask.done span.stext { text-decoration: line-through; color: var(--text-faint); }
+  .subtask strong { color: var(--text); font-weight: 600; }
+  .subtask.done strong { color: var(--text-faint); font-weight: 600; }
+
+  .toggle-hint { font-size: 10.5px; color: var(--text-faint); margin-top: 8px; user-select: none; }
+
+  /* ---------- Reader ---------- */
+
+  .reader-doc-head { padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+  .reader-doc-head h1 { margin: 0 0 8px; font-size: 21px; font-weight: 700; line-height: 1.3; }
+  .reader-doc-head .rpath { font-size: 11.5px; color: var(--text-faint); font-family: "SFMono-Regular", Consolas, Menlo, monospace; }
+  .r-badges { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+  .reader { max-width: 860px; line-height: 1.65; font-size: 14.5px; word-wrap: break-word; }
+  .reader h1, .reader h2, .reader h3, .reader h4, .reader h5, .reader h6 {
+    line-height: 1.3; margin: 1.4em 0 0.55em; font-weight: 700; color: var(--text);
+  }
+  .reader h1 { font-size: 1.5em; padding-bottom: 0.3em; border-bottom: 1px solid var(--border); }
+  .reader h2 { font-size: 1.3em; padding-bottom: 0.25em; border-bottom: 1px solid var(--border); }
+  .reader h3 { font-size: 1.15em; }
+  .reader h4 { font-size: 1.05em; }
+  .reader p { margin: 0.7em 0; }
+  .reader a { color: var(--accent); text-decoration: none; }
+  .reader a:hover { text-decoration: underline; }
+  .reader strong { color: var(--text); }
+  .reader code {
+    background: var(--panel-alt); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1px 5px; font-size: 12.5px; font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+  }
+  .reader pre {
+    background: var(--panel-alt); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; overflow-x: auto; line-height: 1.5;
+  }
+  .reader pre code { background: none; border: none; padding: 0; font-size: 12.5px; }
+  .reader blockquote {
+    margin: 0.9em 0; padding: 8px 16px; border-left: 3px solid var(--accent);
+    background: rgba(91,140,255,0.06); border-radius: 0 8px 8px 0; color: var(--text-dim);
+  }
+  .reader blockquote p { margin: 0.3em 0; }
+  .reader ul, .reader ol { margin: 0.7em 0; padding-left: 26px; }
+  .reader li { margin: 0.3em 0; }
+  .reader li.task-item { list-style: none; margin-left: -26px; }
+  .reader li.task-item input { margin-right: 8px; accent-color: var(--status-done); }
+  .reader hr { border: none; border-top: 1px solid var(--border); margin: 1.6em 0; }
+  .reader table { border-collapse: collapse; margin: 1em 0; font-size: 13.5px; width: 100%; }
+  .reader th, .reader td { border: 1px solid var(--border); padding: 7px 11px; text-align: left; }
+  .reader th { background: var(--panel-alt); font-weight: 700; }
+  .reader img { max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+  .reader .img-placeholder { color: var(--text-faint); font-style: italic; font-size: 12.5px; }
+
+  .missing-link { color: var(--pri-high); font-style: italic; }
+
+  /* ---------- Search ---------- */
+
+  .search-hits { display: flex; flex-direction: column; gap: 10px; }
+  .hit {
+    background: var(--panel-alt); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; cursor: pointer; transition: border-color 0.15s ease;
+  }
+  .hit:hover { border-color: var(--accent); }
+  .hit .hit-head { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .hit .hit-title { font-size: 13.5px; font-weight: 600; }
+  .hit .hit-path { font-size: 11px; color: var(--text-faint); font-family: "SFMono-Regular", Consolas, monospace; }
+  .hit .hit-snippet { font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+  .hit mark { background: rgba(224,195,65,0.28); color: var(--text); border-radius: 3px; padding: 0 1px; }
+
+  .empty-state { color: var(--text-faint); font-size: 13px; text-align: center; padding: 50px 20px; font-style: italic; }
+
+  /* ---------- Toast ---------- */
+
+  #toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--panel-alt); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 18px; border-radius: 9px; font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    opacity: 0; pointer-events: none; transition: opacity 0.18s ease, transform 0.18s ease; z-index: 50;
+    max-width: 80vw;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 860px) {
+    .sidebar { width: 230px; }
+    #content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-row">
+    <h1>AI Docs — Docs &amp; Board Viewer</h1>
+    <div class="lang-wrap">
+      <label for="langSelect" data-i18n="lang.label">Language:</label>
+      <select id="langSelect">
+        <option value="en">EN English</option>
+        <option value="hu">HU Magyar</option>
+      </select>
+    </div>
+  </div>
+  <div class="meta" id="meta-line" data-i18n="meta.empty">No folder loaded yet.</div>
+  <div class="toolbar">
+    <label class="file-btn" for="folderInput" data-i18n="ui.loadFolder">📂 Load folder</label>
+    <input type="file" id="folderInput" webkitdirectory multiple>
+    <span class="filename-tag" id="filename-tag" style="display:none;"></span>
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-view="board" data-i18n="tab.board">📋 Kanban</button>
+      <button class="tab" data-view="reader" data-i18n="tab.reader">📖 Reader</button>
+      <button class="tab" data-view="search" data-i18n="tab.search">🔍 Search</button>
+    </div>
+    <div class="board-src-wrap" id="boardSrcWrap" style="display:none;">
+      <label data-i18n="board.srcLabel">Board source:</label>
+      <select id="boardSource">
+        <option value="tasks" data-i18n="board.srcTasks">From TASK files</option>
+        <option value="boardmd" data-i18n="board.srcBoardmd">From BOARD.md</option>
+      </select>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Global search… (* wildcard allowed)" data-i18n-placeholder="search.placeholder">
+    </div>
+    <button class="clear-search" id="clearSearch" data-i18n="search.clear">✕ Clear</button>
+  </div>
+</header>
+
+<main>
+  <div id="dropzone">
+    <div class="dz-icon">📥</div>
+    <h2 data-i18n="drop.title">Drop the _docs/ folder here</h2>
+    <p data-i18n-html="drop.p1">A folder (drag&amp;drop) or a folder picker, <b>or a single BOARD.md file</b> can be loaded.</p>
+    <p data-i18n="drop.p2">Files are processed only in your browser, locally — nothing is uploaded anywhere.</p>
+    <div class="dz-or" data-i18n="drop.or">or</div>
+    <label class="file-btn" for="folderInput" data-i18n="drop.choose">📂 Choose folder</label>
+  </div>
+
+  <div id="workspace">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-filters">
+        <select id="typeFilter">
+          <option value="all" data-i18n="filter.allTypes">All types</option>
+          <option value="Task">Task</option>
+          <option value="Journal">Journal</option>
+          <option value="Module">Module</option>
+          <option value="Arch">Arch</option>
+          <option value="Spec">Spec</option>
+          <option value="Template">Template</option>
+          <option value="Meta" data-i18n="filter.meta">Meta (index/log/board)</option>
+          <option value="Other" data-i18n="filter.other">Other</option>
+        </select>
+        <select id="statusFilter" style="display:none;">
+          <option value="all" data-i18n="filter.allStatuses">All statuses</option>
+          <option value="planning">Planning</option>
+          <option value="in-progress">In Progress</option>
+          <option value="review">Review</option>
+          <option value="done">Done</option>
+          <option value="postponed">Postponed</option>
+        </select>
+      </div>
+      <div class="file-list" id="fileList"></div>
+    </aside>
+
+    <section id="content">
+      <div id="view-board" class="view">
+        <div class="view-head">
+          <h2 data-i18n="view.kanban">Kanban Board</h2>
+          <span class="view-count" id="board-count"></span>
+        </div>
+        <div id="board"></div>
+      </div>
+
+      <div id="view-reader" class="view">
+        <div class="view-head">
+          <h2 data-i18n="view.reader">Document reader</h2>
+          <span class="view-count" id="reader-path"></span>
+        </div>
+        <div id="reader"></div>
+      </div>
+
+      <div id="view-search" class="view">
+        <div class="view-head">
+          <h2 data-i18n="view.search">Search results</h2>
+          <span class="view-count" id="search-count"></span>
+        </div>
+        <div class="search-hits" id="searchHits"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="toast"></div>
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Constants ---------- */
+
+  var STATUS_ORDER = ["Planning", "In Progress", "Review", "Done", "Postponed"];
+  var STATUS_KEY = ["planning", "in-progress", "review", "done", "postponed"];
+  var STATUS_COLOR = {
+    "Planning": "var(--status-planning)",
+    "In Progress": "var(--status-progress)",
+    "Review": "var(--status-review)",
+    "Done": "var(--status-done)",
+    "Postponed": "var(--status-postponed)"
+  };
+  var TYPE_COLOR = {
+    "Task": "var(--type-task)",
+    "Journal": "var(--type-journal)",
+    "Module": "var(--type-module)",
+    "Arch": "var(--type-arch)",
+    "Spec": "var(--type-spec)",
+    "Template": "var(--type-other)",
+    "Meta": "var(--type-other)",
+    "Other": "var(--type-other)"
+  };
+  var PRIORITY_ORDER = ["critical", "high", "medium", "low"];
+  var STALE_DAYS = 14;
+  var LS_LANG_KEY = "docs-viewer-lang";
+
+  /* ---------- i18n ---------- */
+
+  var I18N = {
+    en: {
+      "meta.empty": "No folder loaded yet.",
+      "meta.loaded": "Loaded: {root} · {n} files · {tasks} tasks · {journals} journals",
+      "ui.loadFolder": "📂 Load folder",
+      "lang.label": "Language:",
+      "tab.board": "📋 Kanban",
+      "tab.reader": "📖 Reader",
+      "tab.search": "🔍 Search",
+      "board.srcLabel": "Board source:",
+      "board.srcTasks": "From TASK files",
+      "board.srcBoardmd": "From BOARD.md",
+      "search.placeholder": "Global search… (* wildcard allowed)",
+      "search.clear": "✕ Clear",
+      "search.emptyPrompt": "Type a search term above.",
+      "search.count": "{n} hits",
+      "search.noResults": "No results for “{q}”",
+      "drop.title": "Drop the _docs/ folder here",
+      "drop.p1": "A folder (drag&drop) or a folder picker, <b>or a single BOARD.md file</b> can be loaded.",
+      "drop.p2": "Files are processed only in your browser, locally — nothing is uploaded anywhere.",
+      "drop.or": "or",
+      "drop.choose": "📂 Choose folder",
+      "filter.allTypes": "All types",
+      "filter.meta": "Meta (index/log/board)",
+      "filter.other": "Other",
+      "filter.allStatuses": "All statuses",
+      "view.kanban": "Kanban Board",
+      "view.reader": "Document reader",
+      "view.search": "Search results",
+      "files.count": "{root}/  ({n} files)",
+      "files.rootFallback": "folder",
+      "board.count": "{n} tasks",
+      "board.empty": "(no tasks)",
+      "board.noBoardmd": "BOARD.md not found among the loaded files.",
+      "card.open": "Open in reader",
+      "card.toggleHint": "▸ click for subtasks",
+      "card.toggleHide": "▾ hide subtasks",
+      "card.staleNote": "not updated in {n} days",
+      "img.placeholder": "image",
+      "reader.empty": "Select a file from the list on the left.",
+      "toast.noMd": "No .md file found in the selected input.",
+      "toast.dirUnreadable": "The folder contents can't be read via drag&drop in this browser — use the “Load folder” button.",
+      "toast.notLoaded": "Not loaded: {path}",
+      "toast.brokenLink": "Link not found among the loaded files: {path}",
+      "toast.boardSrcFallback": "No BOARD.md among the loaded files — keeping the TASK-based view."
+    },
+    hu: {
+      "meta.empty": "Nincs betöltött mappa.",
+      "meta.loaded": "Betöltve: {root} · {n} fájl · {tasks} task · {journals} journal",
+      "ui.loadFolder": "📂 Mappa betöltése",
+      "lang.label": "Nyelv:",
+      "tab.board": "📋 Kanban",
+      "tab.reader": "📖 Olvasó",
+      "tab.search": "🔍 Kereső",
+      "board.srcLabel": "Board forrás:",
+      "board.srcTasks": "TASK fájlokból",
+      "board.srcBoardmd": "BOARD.md-ből",
+      "search.placeholder": "Globális keresés… (* joker használható)",
+      "search.clear": "✕ Törlés",
+      "search.emptyPrompt": "Írj be egy keresési kifejezést fent.",
+      "search.count": "{n} találat",
+      "search.noResults": "Nincs találat erre: „{q}”",
+      "drop.title": "Húzd ide a _docs/ mappát",
+      "drop.p1": "Mappa (drag&drop) vagy kattintással választó, <b>vagy egyetlen BOARD.md fájl</b> is betölthető.",
+      "drop.p2": "A fájlok csak a böngésződben, helyben kerülnek feldolgozásra — semmi nem kerül feltöltésre sehova.",
+      "drop.or": "vagy",
+      "drop.choose": "📂 Mappa kiválasztása",
+      "filter.allTypes": "Minden típus",
+      "filter.meta": "Meta (index/log/board)",
+      "filter.other": "Egyéb",
+      "filter.allStatuses": "Minden status",
+      "view.kanban": "Kanban Board",
+      "view.reader": "Dokumentum olvasó",
+      "view.search": "Keresési találatok",
+      "files.count": "{root}/  ({n} fájl)",
+      "files.rootFallback": "mappa",
+      "board.count": "{n} task",
+      "board.empty": "(nincs feladat)",
+      "board.noBoardmd": "BOARD.md nem található a betöltött fájlok között.",
+      "card.open": "Megnyitás az olvasóban",
+      "card.toggleHint": "▸ kattints a részfeladatokért",
+      "card.toggleHide": "▾ részfeladatok elrejtése",
+      "card.staleNote": "{n} napja nem frissült",
+      "img.placeholder": "kép",
+      "reader.empty": "Válassz egy fájlt a bal oldali listából.",
+      "toast.noMd": "Nem található .md fájl a kiválasztott bevitelben.",
+      "toast.dirUnreadable": "A mappa tartalma drag&drop-pal nem olvasható ebben a böngészőben — használd a „Mappa betöltése” gombot.",
+      "toast.notLoaded": "Nincs betöltve: {path}",
+      "toast.brokenLink": "Hivatkozás nem található a betöltött fájlok között: {path}",
+      "toast.boardSrcFallback": "Nincs BOARD.md a betöltött fájlok között — marad a TASK-alapú nézet."
+    }
+  };
+
+  function t(key, vars) {
+    var str = (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key;
+    if (vars) {
+      for (var k in vars) {
+        if (vars.hasOwnProperty(k)) str = str.split("{" + k + "}").join(vars[k]);
+      }
+    }
+    return str;
+  }
+
+  /* ---------- State ---------- */
+
+  var state = {
+    docs: [],
+    byPath: {},
+    view: "board",
+    currentPath: null,
+    query: "",
+    boardSource: "tasks",
+    typeFilter: "all",
+    statusFilter: "all",
+    lang: "en",
+    loadedRoot: ""
+  };
+
+  /* ---------- DOM refs ---------- */
+
+  var $ = function (id) { return document.getElementById(id); };
+  var el = {
+    meta: $("meta-line"),
+    folderInput: $("folderInput"),
+    filenameTag: $("filename-tag"),
+    dropzone: $("dropzone"),
+    workspace: $("workspace"),
+    boardSrcWrap: $("boardSrcWrap"),
+    boardSource: $("boardSource"),
+    langSelect: $("langSelect"),
+    searchInput: $("searchInput"),
+    clearSearch: $("clearSearch"),
+    tabs: $("tabs"),
+    typeFilter: $("typeFilter"),
+    statusFilter: $("statusFilter"),
+    fileList: $("fileList"),
+    board: $("board"),
+    boardCount: $("board-count"),
+    reader: $("reader"),
+    readerPath: $("reader-path"),
+    searchHits: $("searchHits"),
+    searchCount: $("search-count"),
+    content: $("content"),
+    toast: $("toast")
+  };
+
+  /* ---------- Utilities ---------- */
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/'/g, "&#39;");
+  }
+
+  function basename(path) {
+    var p = String(path).replace(/\\/g, "/");
+    return p.split("/").pop();
+  }
+
+  function dirname(path) {
+    var p = String(path).replace(/\\/g, "/");
+    var idx = p.lastIndexOf("/");
+    return idx === -1 ? "" : p.slice(0, idx);
+  }
+
+  function normalizePath(p) {
+    var parts = String(p).replace(/\\/g, "/").split("/");
+    var stack = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i] === "" || parts[i] === ".") continue;
+      if (parts[i] === "..") { if (stack.length) stack.pop(); continue; }
+      stack.push(parts[i]);
+    }
+    return stack.join("/");
+  }
+
+  function wildcardToRegex(pattern) {
+    var escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+    escaped = escaped.replace(/\*/g, ".*").replace(/\?/g, ".");
+    return new RegExp(escaped, "i");
+  }
+
+  function daysSince(dateStr) {
+    if (!dateStr) return 0;
+    var d = new Date(String(dateStr));
+    if (isNaN(d.getTime())) return 0;
+    return Math.max(0, Math.floor((Date.now() - d.getTime()) / 86400000));
+  }
+
+  function slugify(s) {
+    return String(s).toLowerCase().trim()
+      .replace(/[^a-z0-9áéíóöőúüű\s-]/g, "")
+      .replace(/[\s_]+/g, "-")
+      .replace(/-+/g, "-");
+  }
+
+  function showToast(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () { el.toast.classList.remove("show"); }, 2600);
+  }
+
+  /* ---------- Language switching ---------- */
+
+  function applyStaticI18n() {
+    var nodes = document.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].textContent = t(nodes[i].getAttribute("data-i18n"));
+    }
+    nodes = document.querySelectorAll("[data-i18n-placeholder]");
+    for (var j = 0; j < nodes.length; j++) {
+      nodes[j].placeholder = t(nodes[j].getAttribute("data-i18n-placeholder"));
+    }
+    nodes = document.querySelectorAll("[data-i18n-html]");
+    for (var k = 0; k < nodes.length; k++) {
+      nodes[k].innerHTML = t(nodes[k].getAttribute("data-i18n-html"));
+    }
+  }
+
+  function setLang(lang) {
+    if (!I18N[lang]) return;
+    state.lang = lang;
+    el.langSelect.value = lang;
+    document.documentElement.setAttribute("lang", lang);
+    applyStaticI18n();
+    try { localStorage.setItem(LS_LANG_KEY, lang); } catch (e) { /* file:// or blocked storage */ }
+    updateStatusBar();
+    if (state.docs.length) render();
+  }
+
+  function initLang() {
+    var saved = null;
+    try { saved = localStorage.getItem(LS_LANG_KEY); } catch (e) { /* ignore */ }
+    setLang(I18N[saved] ? saved : "en");
+  }
+
+  /* ---------- Type detection ---------- */
+
+  function detectType(relPath) {
+    var p = String(relPath).replace(/\\/g, "/").toLowerCase();
+    var name = basename(p).toLowerCase();
+    if (/\/tasks\//.test(p) && /^task-/.test(name)) return "Task";
+    if (/\/journal\//.test(p)) return "Journal";
+    if (/\/modules\//.test(p)) return "Module";
+    if (/\/arch\//.test(p)) return "Arch";
+    if (/\/spec\//.test(p)) return "Spec";
+    if (/\/_templates\//.test(p)) return "Template";
+    if (name === "index.md") return "Meta";
+    if (name === "log.md") return "Meta";
+    if (name === "board.md") return "Meta";
+    if (/decisions-log\.md$/.test(name)) return "Meta";
+    if (name === "readme.md") return "Meta";
+    return "Other";
+  }
+
+  /* ---------- YAML frontmatter parser (compact, no deps) ---------- */
+
+  function splitFrontmatter(text) {
+    var lines = text.split(/\r?\n/);
+    if (lines.length && /^\s*---\s*$/.test(lines[0])) {
+      for (var i = 1; i < lines.length; i++) {
+        if (/^\s*---\s*$/.test(lines[i])) {
+          return {
+            frontmatter: lines.slice(1, i).join("\n"),
+            body: lines.slice(i + 1).join("\n")
+          };
+        }
+      }
+    }
+    return { frontmatter: "", body: text };
+  }
+
+  function cleanScalar(s) {
+    s = s.trim();
+    if ((s[0] === '"' && s[s.length - 1] === '"') || (s[0] === "'" && s[s.length - 1] === "'")) {
+      return s.slice(1, -1);
+    }
+    if (s === "true") return true;
+    if (s === "false") return false;
+    if (s === "null" || s === "~") return null;
+    if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+    return s;
+  }
+
+  function parseYaml(src) {
+    var obj = {};
+    var lines = src.split(/\r?\n/);
+    var arrKey = null;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var trimmed = line.trim();
+      if (!trimmed || trimmed.charAt(0) === "#") continue;
+
+      var arrMatch = trimmed.match(/^-\s+(.+)$/);
+      if (arrMatch && arrKey) {
+        if (!Array.isArray(obj[arrKey])) obj[arrKey] = [];
+        obj[arrKey].push(cleanScalar(arrMatch[1]));
+        continue;
+      }
+      if (arrMatch) { continue; }
+
+      var keyMatch = trimmed.match(/^([A-Za-z0-9_.-]+)\s*:\s*(.*)$/);
+      if (!keyMatch) continue;
+
+      var key = keyMatch[1];
+      var val = keyMatch[2].trim();
+      if (val === "") {
+        obj[key] = null;
+        arrKey = key;
+        continue;
+      }
+      if (val === "[]") { obj[key] = []; arrKey = null; continue; }
+      if (val === "{}") { obj[key] = {}; arrKey = null; continue; }
+      if (val.charAt(0) === "[") {
+        obj[key] = val.slice(1, -1).split(",").map(function (s) { return s.trim(); });
+        arrKey = null;
+        continue;
+      }
+      if (val.charAt(0) === "{") { obj[key] = val; arrKey = null; continue; }
+      obj[key] = cleanScalar(val);
+      arrKey = null;
+    }
+    return obj;
+  }
+
+  function inferTitle(body) {
+    var m = body.match(/^\s*#\s+(.+)$/m);
+    return m ? m[1].trim() : null;
+  }
+
+  function parseDoc(relPath, text) {
+    var parts = splitFrontmatter(text);
+    var frontmatter = parts.frontmatter ? parseYaml(parts.frontmatter) : {};
+    var body = parts.body;
+    var title = frontmatter.title || inferTitle(body) || basename(relPath);
+    return {
+      relPath: normalizePath(relPath),
+      name: basename(relPath),
+      type: detectType(relPath),
+      frontmatter: frontmatter,
+      rawBody: body,
+      title: String(title)
+    };
+  }
+
+  /* ---------- Folder / file loading ---------- */
+
+  function traverseEntry(entry, relPath, out, onDone) {
+    if (entry.isFile) {
+      entry.file(function (file) {
+        file._rel = relPath + entry.name;
+        out.push(file);
+        onDone();
+      }, onDone);
+    } else if (entry.isDirectory) {
+      var reader;
+      try { reader = entry.createReader(); } catch (err) { onDone(); return; }
+      var collected = [];
+      var guard = 0;
+      (function readBatch() {
+        reader.readEntries(function (batch) {
+          if (!batch.length || guard++ > 50) {
+            var children = collected.slice();
+            if (!children.length) { onDone(); return; }
+            var remaining = children.length;
+            children.forEach(function (child) {
+              traverseEntry(child, relPath + entry.name + "/", out, function () {
+                remaining--;
+                if (remaining === 0) onDone();
+              });
+            });
+          } else {
+            collected = collected.concat(Array.prototype.slice.call(batch));
+            readBatch();
+          }
+        }, onDone);
+      })();
+    } else {
+      onDone();
+    }
+  }
+
+  function loadFiles(files) {
+    var mdFiles = files.filter(function (f) {
+      var p = f._rel || f.webkitRelativePath || f.name || "";
+      return /\.(md|markdown|txt)$/i.test(p);
+    });
+    if (!mdFiles.length) {
+      var hasDir = files.some(function (f) {
+        var n = f.name || "";
+        return n && n.indexOf(".") === -1;
+      });
+      showToast(hasDir
+        ? t("toast.dirUnreadable")
+        : t("toast.noMd"));
+      return;
+    }
+    var remaining = mdFiles.length;
+    var results = new Array(remaining);
+    mdFiles.forEach(function (file, idx) {
+      var rel = file._rel || file.webkitRelativePath || file.name;
+      var reader = new FileReader();
+      reader.onload = function (evt) {
+        results[idx] = parseDoc(rel, evt.target.result);
+        remaining--;
+        if (remaining === 0) {
+          buildIndex(results);
+          setLoadedLabel(mdFiles);
+        }
+      };
+      reader.onerror = function () {
+        remaining--;
+        if (remaining === 0) {
+          buildIndex(results.filter(Boolean));
+          setLoadedLabel(mdFiles);
+        }
+      };
+      reader.readAsText(file, "UTF-8");
+    });
+  }
+
+  function setLoadedLabel(files) {
+    var rel = files[0] && (files[0]._rel || files[0].webkitRelativePath);
+    state.loadedRoot = rel ? rel.split("/")[0] : t("files.rootFallback");
+    updateStatusBar();
+  }
+
+  function updateStatusBar() {
+    if (state.loadedRoot) {
+      el.filenameTag.textContent = t("files.count", { root: state.loadedRoot, n: state.docs.length });
+      el.filenameTag.style.display = "inline-block";
+    }
+    if (!state.docs.length) {
+      el.meta.textContent = t("meta.empty");
+      return;
+    }
+    var tasks = state.docs.filter(function (d) { return d.type === "Task"; }).length;
+    var journals = state.docs.filter(function (d) { return d.type === "Journal"; }).length;
+    el.meta.textContent = t("meta.loaded", {
+      root: state.loadedRoot || "",
+      n: state.docs.length,
+      tasks: tasks,
+      journals: journals
+    });
+  }
+
+  el.folderInput.addEventListener("change", function () {
+    var files = Array.prototype.slice.call(el.folderInput.files);
+    if (files.length) loadFiles(files);
+    el.folderInput.value = "";
+  });
+
+  /* Drag & drop */
+  var dragCounter = 0;
+
+  function isFileDrag(e) {
+    return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") !== -1;
+  }
+
+  ["dragenter", "dragover", "dragleave", "drop"].forEach(function (evtName) {
+    document.addEventListener(evtName, function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  document.addEventListener("dragenter", function (e) {
+    if (!isFileDrag(e)) return;
+    dragCounter++;
+    el.dropzone.classList.add("dragover");
+    el.dropzone.style.display = "block";
+  });
+
+  document.addEventListener("dragleave", function () {
+    dragCounter = Math.max(0, dragCounter - 1);
+    if (dragCounter === 0) {
+      el.dropzone.classList.remove("dragover");
+      if (state.docs.length) el.dropzone.style.display = "none";
+    }
+  });
+
+  document.addEventListener("drop", function (e) {
+    dragCounter = 0;
+    el.dropzone.classList.remove("dragover");
+    if (!isFileDrag(e)) return;
+
+    var items = e.dataTransfer.items;
+    var entries = [];
+    if (items && items.length) {
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        if (it.kind === "file" && it.webkitGetAsEntry) {
+          var entry = it.webkitGetAsEntry();
+          if (entry) entries.push(entry);
+        }
+      }
+    }
+
+    var transferFiles = e.dataTransfer.files
+      ? Array.prototype.slice.call(e.dataTransfer.files)
+      : [];
+
+    if (entries.length) {
+      var all = [];
+      var pending = entries.length;
+      entries.forEach(function (entry) {
+        traverseEntry(entry, "", all, function () {
+          pending--;
+          if (pending !== 0) return;
+          if (all.length) loadFiles(all);
+          else if (transferFiles.length) loadFiles(transferFiles);
+          else loadFiles(all);
+        });
+      });
+    } else if (transferFiles.length) {
+      loadFiles(transferFiles);
+    }
+  });
+
+  /* ---------- In-memory index ---------- */
+
+  function buildIndex(docs) {
+    state.docs = docs.filter(function (d) { return d && d.relPath; });
+    state.byPath = {};
+    state.docs.forEach(function (d) {
+      state.byPath[d.relPath] = d;
+    });
+
+    updateStatusBar();
+
+    var tasks = state.docs.filter(function (d) { return d.type === "Task"; }).length;
+    var boardDoc = getBoardDoc();
+    if (boardDoc && tasks === 0) {
+      state.boardSource = "boardmd";
+      el.boardSource.value = "boardmd";
+    } else if (state.boardSource === "boardmd" && !boardDoc) {
+      state.boardSource = "tasks";
+      el.boardSource.value = "tasks";
+    }
+
+    if (!state.currentPath) {
+      var first = state.docs[0];
+      state.currentPath = first ? first.relPath : null;
+    }
+
+    el.dropzone.style.display = "none";
+    el.workspace.classList.add("active");
+    el.boardSrcWrap.style.display = "flex";
+    el.searchInput.disabled = false;
+
+    render();
+  }
+
+  function getBoardDoc() {
+    return state.docs.filter(function (d) {
+      return d.type === "Meta" && /board\.md$/i.test(d.name);
+    })[0] || null;
+  }
+
+  /* ---------- Markdown renderer (compact, no deps) ---------- */
+
+  function inline(text) {
+    var result = "";
+    var buffer = "";
+    var i = 0;
+    function flush() {
+      if (buffer) { result += escapeHtml(buffer); buffer = ""; }
+    }
+    while (i < text.length) {
+      var ch = text.charAt(i);
+
+      if (ch === "`") {
+        var end = text.indexOf("`", i + 1);
+        if (end !== -1) {
+          flush();
+          result += "<code>" + escapeHtml(text.slice(i + 1, end)) + "</code>";
+          i = end + 1;
+          continue;
+        }
+      }
+
+      if (ch === "!" && text.charAt(i + 1) === "[") {
+        var img = text.slice(i).match(/^!\[([^\]]*)\]\(([^)]+)\)/);
+        if (img) {
+          flush();
+          result += '<span class="img-placeholder">\uD83D\uDDBC\uFE0F ' + escapeHtml(img[1] || t("img.placeholder")) + "</span>";
+          i += img[0].length;
+          continue;
+        }
+      }
+
+      if (ch === "[") {
+        var link = text.slice(i).match(/^\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/);
+        if (link) {
+          flush();
+          var href = link[2];
+          var external = /^(https?:|mailto:|ftp:)/i.test(href);
+          result += '<a href="' + escapeAttr(href) + '"' +
+            (external ? ' target="_blank" rel="noopener"' : "") +
+            (link[3] ? ' title="' + escapeAttr(link[3]) + '"' : "") +
+            ">" + inline(link[1]) + "</a>";
+          i += link[0].length;
+          continue;
+        }
+      }
+
+      if (ch === "*" && text.charAt(i + 1) === "*") {
+        var bEnd = text.indexOf("**", i + 2);
+        if (bEnd !== -1) {
+          flush();
+          result += "<strong>" + inline(text.slice(i + 2, bEnd)) + "</strong>";
+          i = bEnd + 2;
+          continue;
+        }
+      }
+
+      if (ch === "*" && text.charAt(i + 1) !== "*") {
+        var iEnd = text.indexOf("*", i + 1);
+        if (iEnd !== -1 && text.charAt(iEnd - 1) !== "*") {
+          flush();
+          result += "<em>" + inline(text.slice(i + 1, iEnd)) + "</em>";
+          i = iEnd + 1;
+          continue;
+        }
+      }
+
+      if (ch === "_" && text.charAt(i + 1) === "_") {
+        var b2End = text.indexOf("__", i + 2);
+        if (b2End !== -1) {
+          flush();
+          result += "<strong>" + inline(text.slice(i + 2, b2End)) + "</strong>";
+          i = b2End + 2;
+          continue;
+        }
+      }
+
+      buffer += ch;
+      i++;
+    }
+    flush();
+    return result;
+  }
+
+  function splitTableRow(row) {
+    var s = row.trim();
+    if (s.charAt(0) === "|") s = s.slice(1);
+    if (s.charAt(s.length - 1) === "|") s = s.slice(0, -1);
+    return s.split("|").map(function (c) { return c.trim(); });
+  }
+
+  function renderTable(rows) {
+    var html = "<table><thead><tr>";
+    splitTableRow(rows[0]).forEach(function (c) { html += "<th>" + inline(c) + "</th>"; });
+    html += "</tr></thead><tbody>";
+    for (var r = 1; r < rows.length; r++) {
+      if (/^[\s|:-]+$/.test(rows[r])) continue;
+      var cells = splitTableRow(rows[r]);
+      if (cells.length === 1 && cells[0] === "") continue;
+      html += "<tr>";
+      cells.forEach(function (c) { html += "<td>" + inline(c) + "</td>"; });
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+    return html;
+  }
+
+  function renderMarkdown(md) {
+    var lines = String(md).replace(/\r\n/g, "\n").split("\n");
+    var out = [];
+    var i = 0;
+    var listOpen = false;
+    var listType = null;
+    var para = [];
+
+    function flushPara() {
+      if (para.length) {
+        out.push("<p>" + inline(para.join(" ")) + "</p>");
+        para = [];
+      }
+    }
+    function closeList() {
+      if (listOpen) { out.push("</" + listType + ">"); listOpen = false; listType = null; }
+    }
+
+    while (i < lines.length) {
+      var line = lines[i];
+
+      var fence = line.match(/^\s*```(.*)$/);
+      if (fence) {
+        flushPara(); closeList();
+        var lang = fence[1].trim();
+        var code = [];
+        i++;
+        while (i < lines.length && !/^\s*```/.test(lines[i])) { code.push(lines[i]); i++; }
+        i++;
+        out.push("<pre" + (lang ? ' class="lang-' + lang + '"' : "") + "><code>" +
+          escapeHtml(code.join("\n")) + "</code></pre>");
+        continue;
+      }
+
+      if (/^( {4}|\t)/.test(line)) {
+        flushPara(); closeList();
+        var codeLines = [];
+        while (i < lines.length && /^( {4}|\t)/.test(lines[i])) {
+          codeLines.push(lines[i].replace(/^( {4}|\t)/, ""));
+          i++;
+        }
+        out.push("<pre><code>" + escapeHtml(codeLines.join("\n")) + "</code></pre>");
+        continue;
+      }
+
+      var h = line.match(/^(#{1,6})\s+(.*)$/);
+      if (h) {
+        flushPara(); closeList();
+        var level = h[1].length;
+        var id = slugify(h[2]);
+        out.push("<h" + level + (id ? ' id="' + id + '"' : "") + ">" + inline(h[2]) + "</h" + level + ">");
+        i++;
+        continue;
+      }
+
+      if (/^\s*(---+|\*\*\*+|___+)\s*$/.test(line)) {
+        flushPara(); closeList();
+        out.push("<hr>");
+        i++;
+        continue;
+      }
+
+      if (/^\s*>\s?/.test(line)) {
+        flushPara(); closeList();
+        var q = [];
+        while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+          q.push(lines[i].replace(/^\s*>\s?/, ""));
+          i++;
+        }
+        out.push("<blockquote>" + q.map(function (ql) {
+          var t = ql.trim();
+          if (/^#{1,6}\s/.test(t)) {
+            var hh = t.match(/^(#{1,6})\s+(.*)$/);
+            return "<h" + hh[1].length + ">" + inline(hh[2]) + "</h" + hh[1].length + ">";
+          }
+          return "<p>" + inline(t) + "</p>";
+        }).join("") + "</blockquote>");
+        continue;
+      }
+
+      var ul = line.match(/^\s*([-*+])\s+(.+)$/);
+      if (ul) {
+        flushPara();
+        if (!listOpen || listType !== "ul") { closeList(); out.push("<ul>"); listOpen = true; listType = "ul"; }
+        var li = ul[2];
+        var cb = li.match(/^\[( |x|X)\]\s+(.*)$/);
+        if (cb) {
+          var checked = cb[1].toLowerCase() === "x";
+          out.push('<li class="task-item"><input type="checkbox" disabled' + (checked ? " checked" : "") +
+            "> " + inline(cb[2]) + "</li>");
+        } else {
+          out.push("<li>" + inline(li) + "</li>");
+        }
+        i++;
+        continue;
+      }
+
+      var ol = line.match(/^\s*(\d+)[.)]\s+(.+)$/);
+      if (ol) {
+        flushPara();
+        if (!listOpen || listType !== "ol") { closeList(); out.push("<ol>"); listOpen = true; listType = "ol"; }
+        out.push("<li>" + inline(ol[2]) + "</li>");
+        i++;
+        continue;
+      }
+
+      if (/^\s*\|/.test(line)) {
+        flushPara(); closeList();
+        var tbl = [];
+        while (i < lines.length && /^\s*\|/.test(lines[i])) { tbl.push(lines[i]); i++; }
+        out.push(renderTable(tbl));
+        continue;
+      }
+
+      if (!line.trim()) {
+        flushPara(); closeList();
+        i++;
+        continue;
+      }
+
+      para.push(line.trim());
+      i++;
+    }
+    flushPara();
+    closeList();
+    return out.join("\n");
+  }
+
+  /* ---------- Kanban data: from TASK files ---------- */
+
+  function extractCheckboxes(doc) {
+    var results = [];
+    var lines = (doc.rawBody || "").split(/\r?\n/);
+    var inPlan = false;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      var h = line.match(/^#{1,6}\s+(.*)$/);
+      if (h) { inPlan = /approach\s*\/\s*plan/i.test(h[1]); continue; }
+      if (!inPlan) continue;
+      var cb = line.match(/^\s*-\s*\[( |x|X)\]\s*(.*)$/);
+      if (cb) results.push({ done: cb[1].toLowerCase() === "x", text: cb[2].trim() });
+    }
+    return results;
+  }
+
+  function buildBoardFromTasks() {
+    var columns = STATUS_KEY.map(function (key, idx) {
+      return { key: key, name: STATUS_ORDER[idx], tasks: [] };
+    });
+    var skip = [];
+
+    state.docs.forEach(function (doc) {
+      if (doc.type !== "Task") return;
+      var fm = doc.frontmatter || {};
+      var status = String(fm.status || "").toLowerCase();
+      var col = columns.filter(function (c) { return c.key === status; })[0];
+      if (!col) { skip.push(doc.relPath); return; }
+
+      var subtasks = extractCheckboxes(doc);
+      var done = subtasks.filter(function (s) { return s.done; }).length;
+      var staleDays = 0;
+      var stale = false;
+      if (status === "in-progress") {
+        staleDays = daysSince(fm.updated);
+        stale = staleDays > STALE_DAYS;
+      }
+
+      col.tasks.push({
+        doc: doc,
+        id: fm.id || doc.name,
+        title: fm.title || doc.title,
+        priority: String(fm.priority || "").toLowerCase(),
+        complexity: String(fm.complexity || ""),
+        done: status === "done",
+        subtasks: subtasks,
+        progress: subtasks.length ? { done: done, total: subtasks.length } : null,
+        stale: stale,
+        staleDays: staleDays
+      });
+    });
+
+    columns.forEach(function (col) {
+      col.tasks.sort(function (a, b) {
+        var pa = PRIORITY_ORDER.indexOf(a.priority);
+        var pb = PRIORITY_ORDER.indexOf(b.priority);
+        if (pa === -1) pa = 99;
+        if (pb === -1) pb = 99;
+        if (pa !== pb) return pa - pb;
+        var ua = String(a.doc.frontmatter.updated || "");
+        var ub = String(b.doc.frontmatter.updated || "");
+        return ub.localeCompare(ua);
+      });
+    });
+
+    return { columns: columns, skip: skip };
+  }
+
+  /* ---------- Kanban data: from BOARD.md (fallback) ---------- */
+
+  function parseBoardMarkdown(text) {
+    var lines = text.split(/\r?\n/);
+    var columns = [];
+    var currentColumn = null;
+    var currentTask = null;
+
+    var reColumnHeader = /^##\s+(.+?)\s*$/;
+    var reTaskLine = /^-\s*\[( |x|X)\]\s*\[([^\]]+)\]\(([^)]+)\)\s*(?:`([^`]*)`)?\s*(?:—\s*(.+))?$/;
+    var reSubtaskLine = /^\s{2,}-\s*\[( |x|X)\]\s*(.+)$/;
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+
+      var colMatch = line.match(reColumnHeader);
+      if (colMatch) {
+        currentColumn = { name: colMatch[1].trim(), tasks: [] };
+        columns.push(currentColumn);
+        currentTask = null;
+        continue;
+      }
+      if (!currentColumn) continue;
+
+      var taskMatch = line.match(reTaskLine);
+      if (taskMatch) {
+        var done = taskMatch[1].toLowerCase() === "x";
+        var titleFull = taskMatch[2];
+        var link = taskMatch[3];
+        var badgeStr = taskMatch[4] || "";
+        var trailer = taskMatch[5] || "";
+
+        var idMatch = titleFull.match(/^([A-Za-z]+-\d+)\s*—\s*(.+)$/);
+        var id = idMatch ? idMatch[1] : titleFull;
+        var title = idMatch ? idMatch[2] : titleFull;
+
+        var badgeParts = badgeStr.split("\u00b7").map(function (s) { return s.trim(); }).filter(Boolean);
+        var priority = (badgeParts[0] || "").toLowerCase();
+        var complexity = badgeParts[1] || "";
+
+        var progressMatch = trailer.match(/(\d+)\/(\d+)\s*subtasks/i);
+        var progress = progressMatch ? { done: +progressMatch[1], total: +progressMatch[2] } : null;
+        var staleMatch = trailer.match(/stale\s*—\s*not updated in\s*(\d+)\s*days/i);
+        var stale = !!staleMatch;
+        var staleDays = staleMatch ? +staleMatch[1] : 0;
+
+        currentTask = {
+          id: id, title: title, link: link, done: done,
+          priority: priority, complexity: complexity, progress: progress,
+          stale: stale, staleDays: staleDays, subtasks: []
+        };
+        currentColumn.tasks.push(currentTask);
+        continue;
+      }
+
+      var subMatch = line.match(reSubtaskLine);
+      if (subMatch && currentTask) {
+        currentTask.subtasks.push({ done: subMatch[1].toLowerCase() === "x", text: subMatch[2].trim() });
+        continue;
+      }
+
+      if (currentTask && currentTask.subtasks.length &&
+          /^\s{4,}\S/.test(line) && !/^\s*-\s*\[/.test(line)) {
+        var last = currentTask.subtasks[currentTask.subtasks.length - 1];
+        last.text += " " + line.trim();
+      }
+    }
+    return { columns: columns };
+  }
+
+  function buildBoardFromBoardmd() {
+    var boardDoc = getBoardDoc();
+    if (!boardDoc) return null;
+    var parsed = parseBoardMarkdown(boardDoc.rawBody);
+    var byName = {};
+    STATUS_ORDER.forEach(function (n, idx) { byName[n] = STATUS_KEY[idx]; });
+
+    var columns = STATUS_KEY.map(function (key, idx) {
+      return { key: key, name: STATUS_ORDER[idx], tasks: [] };
+    });
+    parsed.columns.forEach(function (col) {
+      var key = byName[col.name];
+      var target = key ? columns.filter(function (c) { return c.key === key; })[0] : null;
+      if (!target) return;
+      col.tasks.forEach(function (t) { target.tasks.push(t); });
+    });
+    return { columns: columns, skip: [] };
+  }
+
+  /* ---------- Kanban rendering ---------- */
+
+  function priorityClass(p) {
+    if (PRIORITY_ORDER.indexOf(p) !== -1) return "pri-" + p;
+    return "";
+  }
+
+  function renderBoard() {
+    var data;
+    if (state.boardSource === "boardmd") {
+      data = buildBoardFromBoardmd();
+      if (!data) {
+        el.boardCount.textContent = t("board.count", { n: 0 });
+        el.board.innerHTML = '<div class="empty-state">' + t("board.noBoardmd") + "</div>";
+        return;
+      }
+    } else {
+      data = buildBoardFromTasks();
+    }
+
+    var total = 0;
+    data.columns.forEach(function (col) { total += col.tasks.length; });
+    el.boardCount.textContent = t("board.count", { n: total });
+
+    var boardHtml = "";
+    data.columns.forEach(function (col) {
+      var dotColor = STATUS_COLOR[col.name] || "var(--text-faint)";
+      boardHtml += '<div class="column' + (col.name === "Postponed" ? " postponed" : "") + '">' +
+        '<div class="column-head">' +
+          '<span class="column-title"><span class="dot" style="background:' + dotColor + '"></span>' +
+          escapeHtml(col.name) + "</span>" +
+          '<span class="column-count">' + col.tasks.length + "</span>" +
+        "</div><div class=\"column-body\">";
+
+      if (!col.tasks.length) {
+        boardHtml += '<div class="column-empty">' + t("board.empty") + "</div>";
+      } else {
+        col.tasks.forEach(function (task) {
+          boardHtml += renderCard(task);
+        });
+      }
+      boardHtml += "</div></div>";
+    });
+    el.board.innerHTML = boardHtml;
+  }
+
+  function renderCard(task) {
+    var badges = "";
+    if (task.priority) badges += '<span class="badge ' + priorityClass(task.priority) + '">' + escapeHtml(task.priority) + "</span>";
+    if (task.complexity) badges += '<span class="badge complexity">' + escapeHtml(task.complexity) + "</span>";
+    if (task.stale) badges += '<span class="badge stale">\u26a0 stale</span>';
+
+    var progressHtml = "";
+    if (task.progress) {
+      var pct = task.progress.total > 0 ? Math.round((task.progress.done / task.progress.total) * 100) : 0;
+      var fillClass = pct === 100 ? "" : (pct === 0 ? "zero" : "partial");
+      progressHtml = '<div class="progress-row">' +
+        '<div class="progress-bar"><div class="progress-fill ' + fillClass + '" style="width:' + pct + '%"></div></div>' +
+        "<span>" + task.progress.done + "/" + task.progress.total + "</span></div>";
+    }
+
+    var subtasksHtml = "";
+    if (task.subtasks.length) {
+      subtasksHtml = '<div class="subtasks">' + task.subtasks.map(function (s) {
+        var boldMatch = s.text.match(/^\*\*([^*]+)\*\*:?\s*(.*)$/);
+        var textHtml;
+        if (boldMatch) {
+          textHtml = "<strong>" + escapeHtml(boldMatch[1]) + "</strong> <span class=\"stext\">" + escapeHtml(boldMatch[2]) + "</span>";
+        } else {
+          textHtml = '<span class="stext">' + escapeHtml(s.text) + "</span>";
+        }
+        return '<div class="subtask ' + (s.done ? "done" : "pending") + '">' +
+          '<span class="mark">' + (s.done ? "\u2713" : "\u25cb") + "</span><span>" + textHtml + "</span></div>";
+      }).join("") + "</div>";
+    }
+
+    var staleNote = task.stale ? '<div class="subtask pending" style="margin-top:8px;">' +
+      '<span class="mark">\u26a0</span><span class="stext">' + t("card.staleNote", { n: task.staleDays }) + "</span></div>" : "";
+
+    var html =
+      '<div class="card' + (task.done ? " done" : "") + '">' +
+        '<div class="card-head-row">' +
+          '<div class="card-id">' + escapeHtml(task.id) + "</div>" +
+          (task.doc ? '<span class="card-open" data-open="' + escapeAttr(task.doc.relPath) + '" title="' + t("card.open") + '">\uD83D\uDCD6</span>' : "") +
+        "</div>" +
+        '<div class="card-title">' + escapeHtml(task.title) + "</div>" +
+        (badges ? '<div class="badges">' + badges + "</div>" : "") +
+        progressHtml +
+        subtasksHtml +
+        staleNote +
+        (task.subtasks.length ? '<div class="toggle-hint">' + t("card.toggleHint") + "</div>" : "") +
+      "</div>";
+    return html;
+  }
+
+  el.board.addEventListener("click", function (e) {
+    var openBtn = e.target.closest ? e.target.closest(".card-open") : null;
+    if (openBtn) {
+      var target = openBtn.getAttribute("data-open");
+      if (target && state.byPath[target]) openReader(target);
+      return;
+    }
+    var card = e.target.closest ? e.target.closest(".card") : null;
+    if (!card) return;
+    var sub = card.querySelector(".subtasks");
+    var hint = card.querySelector(".toggle-hint");
+    if (sub) {
+      var isOpen = sub.classList.toggle("open");
+      if (hint) hint.textContent = isOpen ? t("card.toggleHide") : t("card.toggleHint");
+    }
+  });
+
+  /* ---------- Reader ---------- */
+
+  function resolveLink(docPath, href) {
+    if (/^(https?:|mailto:|ftp:|#)/i.test(href)) return null;
+    href = href.split("#")[0];
+    if (!href) return null;
+    var rootRel = href.charAt(0) === "/";
+    var clean = href.replace(/^\/+/, "");
+    var base = rootRel ? "" : dirname(docPath);
+    var joined = base ? base + "/" + clean : clean;
+    return normalizePath(joined);
+  }
+
+  function openReader(relPath) {
+    var doc = state.byPath[relPath];
+    if (!doc) { showToast(t("toast.notLoaded", { path: relPath })); return; }
+    state.currentPath = relPath;
+    switchView("reader");
+  }
+
+  function renderReader() {
+    var doc = state.byPath[state.currentPath];
+    if (!doc) {
+      el.reader.innerHTML = '<div class="empty-state">' + t("reader.empty") + "</div>";
+      el.readerPath.textContent = "";
+      return;
+    }
+
+    var fm = doc.frontmatter || {};
+    var badges = "";
+    var tcolor = TYPE_COLOR[doc.type] || "var(--type-other)";
+    badges += '<span class="badge" style="background:' + tcolor + '22; color:' + tcolor + ';">' + escapeHtml(doc.type) + "</span>";
+    if (fm.status) badges += '<span class="badge complexity">status: ' + escapeHtml(fm.status) + "</span>";
+    if (fm.priority) badges += '<span class="badge complexity">priority: ' + escapeHtml(fm.priority) + "</span>";
+
+    el.readerPath.textContent = doc.relPath;
+    el.reader.innerHTML =
+      '<div class="reader-doc-head">' +
+        "<h1>" + escapeHtml(doc.title) + "</h1>" +
+        '<div class="r-badges">' + badges + "</div>" +
+        '<div class="rpath">' + escapeHtml(doc.relPath) + "</div>" +
+      "</div>" +
+      '<div class="reader">' + renderMarkdown(doc.rawBody) + "</div>";
+  }
+
+  /* Internal link handling (event delegation) */
+  el.content.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a) return;
+    var href = a.getAttribute("href");
+    if (/^(https?:|mailto:|ftp:)/i.test(href)) return;
+    e.preventDefault();
+
+    if (href.charAt(0) === "#") {
+      var id = href.slice(1);
+      var target = document.getElementById(id);
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    var resolved = resolveLink(state.currentPath, href);
+    if (!resolved) return;
+    var dest = state.byPath[resolved];
+    if (dest) {
+      openReader(resolved);
+    } else {
+      showToast(t("toast.brokenLink", { path: resolved }));
+    }
+  });
+
+  /* ---------- Sidebar ---------- */
+
+  function renderSidebar() {
+    var order = ["Task", "Journal", "Module", "Arch", "Spec", "Template", "Meta", "Other"];
+    var groups = {};
+    state.docs.forEach(function (doc) {
+      var type = doc.type;
+      if (state.typeFilter !== "all" && type !== state.typeFilter) return;
+      if (type === "Task" && state.statusFilter !== "all") {
+        var st = String((doc.frontmatter || {}).status || "").toLowerCase();
+        if (st !== state.statusFilter) return;
+      }
+      if (!groups[type]) groups[type] = [];
+      groups[type].push(doc);
+    });
+
+    var html = "";
+    order.forEach(function (type) {
+      var items = groups[type];
+      if (!items || !items.length) return;
+      var tcolor = TYPE_COLOR[type] || "var(--type-other)";
+      html += '<div class="type-group-head"><span style="color:' + tcolor + '">' + type + "</span> · " + items.length + "</div>";
+      items.forEach(function (doc) {
+        var active = state.currentPath === doc.relPath;
+        html += '<div class="file-item' + (active ? " active" : "") + '" data-path="' + escapeAttr(doc.relPath) + '">' +
+          '<span class="tdot" style="background:' + tcolor + '"></span>' +
+          '<span class="fname" title="' + escapeAttr(doc.relPath) + '">' + escapeHtml(doc.title) + "</span>" +
+          "</div>";
+      });
+    });
+    el.fileList.innerHTML = html;
+  }
+
+  el.fileList.addEventListener("click", function (e) {
+    var item = e.target.closest ? e.target.closest(".file-item") : null;
+    if (!item) return;
+    openReader(item.getAttribute("data-path"));
+  });
+
+  /* ---------- Search ---------- */
+
+  function searchDocs(query) {
+    if (!query) return [];
+    var regex = wildcardToRegex(query);
+    var results = [];
+    state.docs.forEach(function (doc) {
+      var fmText = JSON.stringify(doc.frontmatter || {});
+      var haystackTitle = doc.title;
+      var haystackBody = doc.rawBody || "";
+      var haystackFm = fmText;
+      var posTitle = haystackTitle.search(regex);
+      var posFm = haystackFm.search(regex);
+      var posBody = haystackBody.search(regex);
+      var pos = -1;
+      var where = "";
+      if (posTitle !== -1) { pos = posTitle; where = "title"; }
+      if (posFm !== -1 && (pos === -1 || posFm < pos)) { pos = posFm; where = "frontmatter"; }
+      if (posBody !== -1 && (pos === -1 || posBody < pos)) { pos = posBody; where = "body"; }
+      if (pos === -1) return;
+      results.push({ doc: doc, pos: pos, where: where });
+    });
+    results.sort(function (a, b) { return a.pos - b.pos; });
+    return results;
+  }
+
+  function snippetFrom(doc, pos, query) {
+    var text = (doc.rawBody || "");
+    var len = text.length;
+    var start = Math.max(0, pos - 70);
+    var end = Math.min(len, pos + query.length + 120);
+    var snippet = text.slice(start, end);
+    if (start > 0) snippet = "…" + snippet;
+    if (end < len) snippet += "…";
+    var regex = wildcardToRegex(query);
+    var parts = snippet.split(regex);
+    var html = "";
+    parts.forEach(function (part, idx) {
+      html += escapeHtml(part);
+      if (idx < parts.length - 1) html += "<mark>" + escapeHtml(query) + "</mark>";
+    });
+    return html.replace(/\n/g, " ");
+  }
+
+  function renderSearch() {
+    var query = state.query;
+    el.searchCount.textContent = "";
+    el.searchHits.innerHTML = "";
+
+    if (!query) {
+      el.searchHits.innerHTML = '<div class="empty-state">' + t("search.emptyPrompt") + "</div>";
+      return;
+    }
+
+    var results = searchDocs(query);
+    el.searchCount.textContent = t("search.count", { n: results.length });
+
+    if (!results.length) {
+      el.searchHits.innerHTML = '<div class="empty-state">' + t("search.noResults", { q: query }) + "</div>";
+      return;
+    }
+
+    var html = "";
+    results.forEach(function (res) {
+      var tcolor = TYPE_COLOR[res.doc.type] || "var(--type-other)";
+      html += '<div class="hit" data-path="' + escapeAttr(res.doc.relPath) + '">' +
+        '<div class="hit-head">' +
+          '<span class="badge" style="background:' + tcolor + '22; color:' + tcolor + ';">' + escapeHtml(res.doc.type) + "</span>" +
+          '<span class="hit-title">' + escapeHtml(res.doc.title) + "</span>" +
+        "</div>" +
+        '<div class="hit-path">' + escapeHtml(res.doc.relPath) + " · " + escapeHtml(res.where) + "</div>" +
+        '<div class="hit-snippet">' + snippetFrom(res.doc, res.pos, query) + "</div>" +
+      "</div>";
+    });
+    el.searchHits.innerHTML = html;
+  }
+
+  el.searchHits.addEventListener("click", function (e) {
+    var hit = e.target.closest ? e.target.closest(".hit") : null;
+    if (!hit) return;
+    openReader(hit.getAttribute("data-path"));
+  });
+
+  /* ---------- View switching ---------- */
+
+  function switchView(view) {
+    state.view = view;
+    var tabs = el.tabs.querySelectorAll(".tab");
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.toggle("active", tabs[i].getAttribute("data-view") === view);
+    }
+    ["view-board", "view-reader", "view-search"].forEach(function (id) {
+      var v = $(id);
+      if (v) v.classList.toggle("active", id === ("view-" + view));
+    });
+    render();
+  }
+
+  el.tabs.addEventListener("click", function (e) {
+    var tab = e.target.closest ? e.target.closest(".tab") : null;
+    if (!tab) return;
+    switchView(tab.getAttribute("data-view"));
+  });
+
+  /* ---------- Master render ---------- */
+
+  function render() {
+    renderSidebar();
+    renderCurrentView();
+  }
+
+  function renderCurrentView() {
+    if (!state.docs.length) return;
+    if (state.view === "board") renderBoard();
+    else if (state.view === "reader") renderReader();
+    else if (state.view === "search") renderSearch();
+  }
+
+  /* ---------- Events ---------- */
+
+  el.searchInput.addEventListener("input", function () {
+    state.query = el.searchInput.value.trim();
+    el.clearSearch.classList.toggle("visible", state.query.length > 0);
+    if (state.query) switchView("search");
+    else if (state.view === "search") { state.view = "board"; switchView("board"); }
+    else render();
+  });
+
+  el.clearSearch.addEventListener("click", function () {
+    el.searchInput.value = "";
+    state.query = "";
+    el.clearSearch.classList.remove("visible");
+    switchView("board");
+  });
+
+  el.boardSource.addEventListener("change", function () {
+    state.boardSource = el.boardSource.value;
+    if (state.boardSource === "boardmd" && !getBoardDoc()) {
+      showToast(t("toast.boardSrcFallback"));
+      state.boardSource = "tasks";
+      el.boardSource.value = "tasks";
+    }
+    renderBoard();
+  });
+
+  el.langSelect.addEventListener("change", function () {
+    setLang(el.langSelect.value);
+  });
+
+  el.typeFilter.addEventListener("change", function () {
+    state.typeFilter = el.typeFilter.value;
+    el.statusFilter.style.display = state.typeFilter === "Task" ? "" : "none";
+    if (state.typeFilter !== "Task") el.statusFilter.value = "all";
+    render();
+  });
+
+  el.statusFilter.addEventListener("change", function () {
+    state.statusFilter = el.statusFilter.value;
+    render();
+  });
+
+  /* Init */
+  initLang();
+  switchView("board");
+})();
+</script>
+
+</body>
+</html>
