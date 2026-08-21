@@ -1,3 +1,5 @@
+![description](social-preview.jpg)
+
 # AI Docs 🚀
 
 > **AI-driven documentation workflow automation.**
@@ -7,7 +9,7 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Markdown](https://img.shields.io/badge/docs-Markdown-blue.svg)
 ![Obsidian Compatible](https://img.shields.io/badge/Obsidian-compatible-7C3AED.svg)
-![Works with Antigravity](https://img.shields.io/badge/works%20with-Antigravity-green.svg)
+![Works with any AI agent](https://img.shields.io/badge/works%20with-any%20AI%20agent-green.svg)
 [![OKF v0.2](https://img.shields.io/badge/OKF-v0.2%20conformant-blueviolet.svg)](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
 
 Since v0.2 of this template, `_docs/` is also an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)-conformant knowledge bundle: `type`-tagged concepts, `index.md`/`log.md` reserved files, and plain markdown cross-links instead of Obsidian wikilinks — so any generic OKF consumer (not just Obsidian) can read it without translation.
@@ -24,7 +26,7 @@ Since v0.2 of this template, `_docs/` is also an [Open Knowledge Format](https:/
 - 🖥️ **Docs & Board Viewer (`tool/`)**: A portable, server-less HTML/JS viewer that loads your `_docs/` folder and renders kanban, reader and search views — no Obsidian required, bilingual (EN/HU) UI.
 - 💎 **Modern Aesthetics**: Structured Markdown format readable everywhere.
 - 📂 **Obsidian Compatibility**: The `_docs/` folder works immediately as an Obsidian vault (with Dataview support).
-- 🛠️ **Customizable**: Easily expandable using Antigravity Workflows and Skills.
+- 🛠️ **Customizable**: Easily expandable using your agent's Workflows and Skills.
 
 ---
 
