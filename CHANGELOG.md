@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-09-04
+
+### Added
+- `/install` workflow (`.agents/workflows/install.md`) — a one-time, per-agent bootstrap that detects the current AI agent's native auto-loaded file (`CLAUDE.md`, `.cursorrules`, `.windsurfrules`, `GEMINI.md`, etc.) and writes a bridge section into it, referencing `.agents/` (rules, skills, workflow commands) and `agent.md`. Lets agents that don't natively auto-load the framework pick it up automatically in every future session, without duplicating any file content.
+
+### Changed
+- Root `README.md`: added the `/install` step to Quick Start (as a new step 3, once-per-agent) and to the Workflow Commands table.
+- `_docs/README.md`: added a "First-Time Agent Setup" note (§0) pointing to `/install`.
+
 ## [0.2.0] - 2026-08-20
 
 ### Added

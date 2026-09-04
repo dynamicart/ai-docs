@@ -104,7 +104,21 @@ git clone https://github.com/dynamicart/ai-docs.git my-project
 cd my-project
 ```
 
-### 3. Initialize the Shared Brain
+### 3. Bootstrap the agent bridge (once per agent)
+
+Not every agentic tool auto-loads `.agents/` and `agent.md` the way Claude Code, Antigravity, or OpenCode do — many only auto-load their own native file (e.g. `CLAUDE.md`, `.cursorrules`, `GEMINI.md`). The first time you open this project with a **new** agent, run:
+
+```
+/install
+```
+or type
+```
+run @.agents/workflows/install.md /install command
+```
+
+The agent detects its own native auto-loaded file and writes a short bridge section into it, pointing at `agent.md` and `.agents/`. This runs once per agent, not once per session — skip it on agents you've already installed.
+
+### 4. Initialize the Shared Brain
 
 On first use, there is no `agent.md` yet. Generate it with your agent:
 
@@ -114,7 +128,7 @@ On first use, there is no `agent.md` yet. Generate it with your agent:
 
 This reads all files in `_docs/` and creates `agent.md` in the project root. From this point on, every agent session starts with fresh, up-to-date context.
 
-### 4. Bootstrap the architecture reference (recommended for existing codebases)
+### 5. Bootstrap the architecture reference (recommended for existing codebases)
 
 ```
 /arch-sync
@@ -122,7 +136,7 @@ This reads all files in `_docs/` and creates `agent.md` in the project root. Fro
 
 On first run this scans the actual codebase and fills in `_docs/arch/*.md` (stack, directory map, entry points, DB schema, config/env, integrations). Re-run any time the codebase structure changes meaningfully.
 
-### 5. Start your first task
+### 6. Start your first task
 
 ```
 /task-new title="Project initialization"
@@ -130,7 +144,7 @@ On first run this scans the actual codebase and fills in `_docs/arch/*.md` (stac
 
 The task automatically appears on `_docs/BOARD.md`.
 
-### 6. Browse the bundle with the viewer
+### 7. Browse the bundle with the viewer
 
 No Obsidian? The repository ships a standalone, server-less viewer. Open it in any modern browser and drop the `_docs/` folder onto the window (or click **Load folder**):
 
@@ -148,6 +162,7 @@ All workflows live in `.agents/workflows/`. Supported commands:
 
 | Command | Description | Trigger |
 |---|---|---|
+| `/install` | Bootstraps a new AI agent's native bridge into the framework — writes a reference block into that agent's own auto-loaded file (`CLAUDE.md`, `.cursorrules`, `GEMINI.md`, etc.) pointing at `.agents/` and `agent.md`. | manual, once per agent |
 | `/agent-sync` | Update the `agent.md` file. | manual |
 | `/task-new [title]` | Creates a new `TASK-NNN_name.md` file from the template. | manual |
 | `/task-new from-journal` | Creates a new TASK based on a closed JOURNAL entry. | manual |

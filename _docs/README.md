@@ -48,6 +48,10 @@ _docs/
 
 Documentation is primarily managed by the agent (Antigravity) through `/` commands. The goal of the process is to ensure that the design occurring in the chat is not lost but remains in a structured format.
 
+### 0. First-Time Agent Setup
+
+Run once per AI agent (not once per session), the first time this project is opened with a given tool: `/install`. It writes a bridge section into that agent's own native auto-loaded file (e.g. `CLAUDE.md`, `.cursorrules`, `GEMINI.md`) pointing at `agent.md` and `.agents/`, so agents that don't natively auto-load these pick them up automatically from then on. See `.agents/workflows/install.md`.
+
 ### 1. Starting a New Task
 - Use the `/task-new` command. This creates a `tasks/TASK-NNN_name.md` file based on the template.
 - Task goals and YAML parameters (priority, complexity) are recorded at initiation.
