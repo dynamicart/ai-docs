@@ -1,7 +1,8 @@
 # [Directory] Update Log
 
 > OKF reserved file (spec §7) — flat, date-grouped chronological history, newest first.
-> Appended (never rewritten) by `/task-new`, `/task-close`, `/journal-distill`, `/agent-sync`.
+> Appended (never rewritten) by `/task-new`, `/task-close`, `/journal-distill`, `/arch-sync`.
+> Not written by `/agent-sync`, `/project-sync`, `/module-sync`, or `/board-sync`.
 > This is separate from `DECISIONS-LOG.md`, which stays the detailed, per-ADR archive.
 
 ## YYYY-MM-DD

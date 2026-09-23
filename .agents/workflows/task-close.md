@@ -19,6 +19,11 @@ Close the active task.
 7. **Bundle bookkeeping:** Move the task's entry in `_docs/tasks/index.md` from "Active" to "Done", and append a `_docs/log.md` entry.
 8. **Board:** Run `/board-sync` to reflect the closed task (and its final subtask state) on `_docs/BOARD.md`.
 9. **Follow-up:** If open questions remain, suggest a new task.
+10. **Sync offers:** Refreshing the project status after a close is `/project-sync`'s job (it
+    regenerates `_docs/PROJECT-OVERVIEW.md` and `_docs/index.md`), never `agent.md`'s — `agent.md`
+    holds no task/decision/journal lists any more. Offer `/agent-sync` only if a *stable* fact
+    changed (tech stack, directory layout, a project-wide convention). See the Maintenance Routine
+    in `.agents/rules/style-guide.md` §5 for the full end-of-task offer list.
 
 ### /task-close with-journal [TASK-NNN]
 
@@ -53,9 +58,13 @@ Close the task AND distill a final journal as well.
     │   ├─ yes → update DECISIONS-LOG.md
     │   └─ no → skip
     │
-    ├─ Does agent.md exist?
-    │   ├─ yes → update active tasks + recent changes
-    │   └─ no → skip (agent-sync will handle it)
+    ├─ Status refresh needed?
+    │   └─ offer /project-sync (PROJECT-OVERVIEW.md + index.md)
+    │      — never write task/journal/decision lists into agent.md
+    │
+    ├─ Did a STABLE fact change (stack, layout, convention)?
+    │   ├─ yes → offer /agent-sync
+    │   └─ no → skip
     │
     ├─ Is there an open question?
     │   ├─ yes → suggest follow-up task

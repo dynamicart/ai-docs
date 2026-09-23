@@ -16,7 +16,7 @@ _docs/
 ├── index.md                     ← [OKF] bundle root index (reserved filename, no frontmatter except okf_version)
 ├── log.md                       ← [OKF] chronological history (reserved filename)
 ├── BOARD.md                     ← [GENERATED] plaintext kanban view of all tasks (via /board-sync)
-├── PROJECT-OVERVIEW.md          ← [OPTIONAL/GENERATED] rich, human-facing project map (Dataview)
+├── PROJECT-OVERVIEW.md          ← [GENERATED] rich, human-facing project map + current status (/project-sync)
 ├── DECISIONS-LOG.md             ← ADR log (why and what decisions, ADR-NNN format)
 ├── tasks/                       ← Task-specific documents
 │   ├── index.md                 ← [OKF] directory index
@@ -50,7 +50,9 @@ Documentation is primarily managed by the agent (Antigravity) through `/` comman
 
 ### 0. First-Time Agent Setup
 
-Run once per AI agent (not once per session), the first time this project is opened with a given tool: `/install`. It writes a bridge section into that agent's own native auto-loaded file (e.g. `CLAUDE.md`, `.cursorrules`, `GEMINI.md`) pointing at `agent.md` and `.agents/`, so agents that don't natively auto-load these pick them up automatically from then on. See `.agents/workflows/install.md`.
+Run once per AI agent (not once per session), the first time this project is opened with a given tool: `/install`. It writes a bridge section into that agent's own native auto-loaded file (e.g. `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`) pointing at `agent.md` and `.agents/`, so agents that don't natively auto-load these pick them up automatically from then on. See `.agents/workflows/install.md`.
+
+On a fresh project (started from the AI Docs `release` branch, so `_docs/` is still empty), then run `/project-sync` once: its first run asks about the project and creates `PROJECT-OVERVIEW.md`. After that, run `/agent-sync` to generate `agent.md` from it.
 
 ### 1. Starting a New Task
 - Use the `/task-new` command. This creates a `tasks/TASK-NNN_name.md` file based on the template.

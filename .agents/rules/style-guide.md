@@ -36,10 +36,14 @@ All documents are prepared in Markdown format, organized into the following fold
 
 | Folder / File | Content | Update Frequency |
 |--------------|----------|-----------|
-| PROJECT-OVERVIEW.md | Project map, active tasks, tech stack. | At every change. |
+| PROJECT-OVERVIEW.md | Project map, active tasks, tech stack. | At every change (`/project-sync`). |
+| index.md | Generated, file-level map of the bundle. | With PROJECT-OVERVIEW (`/project-sync`). |
+| log.md | Chronological change history (OKF §7). | Appended, never rewritten. |
+| BOARD.md | Generated plaintext kanban of all TASKs. | On every `/board-sync` — never hand-edited. |
 | tasks/ | Individual tasks (TASK-NNN). | Continuously. |
 | journal/ | Daily sessions, brainstorms (JOURNAL-YYYY-MM-DD). | Daily. |
-| arch/ | API specifications, Database schemas, System diagrams. | At architecture changes. |
+| arch/ | API specifications, Database schemas, System diagrams. | At architecture changes (`/arch-sync`). |
+| modules/ | Durable per-module references (responsibility, invariants). | Only via `/module-sync`, manually. |
 | DECISIONS-LOG.md | Repository of architectural decisions (ADR). | At new decisions. |
 | spec/ | Business logic, specifications. | Before new features. |
 
@@ -56,7 +60,37 @@ Where the text is too complex, use Mermaid diagrams.
 At the end of every task, the agent should offer (if it's clearly appropriate):
 - The `/journal-distill` command to close the session.
 - The `/task-close` command to archive the task.
-- Checking the up-to-dateness of `PROJECT-OVERVIEW.md` and `_docs/index.md`.
+- `/project-sync` if the project *status* moved (tasks, decisions, recent changes) — this also
+  refreshes `_docs/index.md`.
+- `/agent-sync` only if a *stable* fact changed (tech stack, directory layout, a project-wide
+  convention). `agent.md` carries no task/journal/decision lists — do not "update" it with status.
+- `/arch-sync` if the work touched anything an `arch/*.md` file describes (stack, routes, schema,
+  env vars, integrations).
+
+#### Exploration-cost trigger — propose `/module-sync`
+
+If, during the task, understanding a code unit required **disproportionate discovery effort** —
+several exploration/search agents, reading many files across several folders, or reconstructing an
+implicit convention by hand (e.g. *how templating works in this PHP framework and how the matching
+css/js files are wired to it*) — and that same understanding will very likely be needed again in a
+future task, then say so explicitly at the end of the task and propose:
+
+> `/module-sync <module-name>` — so what was just reconstructed becomes a durable
+> `_docs/modules/<module-name>.md` reference instead of being re-discovered from scratch next time.
+
+Rules for this proposal:
+
+- **It is a proposal only.** Never run `/module-sync` on your own initiative — it is
+  manual-invocation-only by design (see the Documentation Workflow Skill §11).
+- Name the concrete module, and state in one sentence what was expensive to reconstruct — the
+  invariants, entry points, or implicit conventions worth writing down. That sentence is the seed
+  of the module document.
+- Do not propose it for a one-off, throwaway lookup, and do not propose it for something an
+  existing `arch/*.md` or `modules/*.md` file already covers — check first.
+- If no module file exists yet, say so: `/module-sync` will offer to create one from
+  `MODULE-template.md`.
+- One proposal per module, at the end of the task — not mid-work, and not repeated for the same
+  module in the same session.
 
 ### 6. OKF Conformance
 
