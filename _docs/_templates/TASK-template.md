@@ -17,6 +17,8 @@ tags:
 journals:
   - JOURNAL-2025-01-01-topic
 related_tasks: []
+related_modules: []
+# module ids (e.g. MODULE-billing) this task touches — read by the modules/*.md Dataview blocks
 complexity: "medium"
 # complexity values: small | medium | large | epic
 generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }

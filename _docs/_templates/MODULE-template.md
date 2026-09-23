@@ -85,11 +85,14 @@ verified: []
 > fast even where Dataview isn't available (e.g. a generic OKF consumer).
 
 ```dataview
-TABLE status, journal_type
+TABLE status, priority, updated
 FROM "_docs/tasks"
 WHERE contains(related_modules, "module-name")
 SORT file.ctime DESC
 ```
+
+> The query matches on the TASK frontmatter's `related_modules` field — add this module's id
+> there when a task touches it, otherwise the table stays empty.
 
 ## Change log (brief)
 

@@ -42,7 +42,10 @@ Apply the rules of the **Documentation Workflow Skill** whenever updating archit
 2. Read source files per section (table above).
 3. Read existing `arch/*.md` (if any) + matching template.
 4. For each section: diff scan-derived facts against current file content; apply structural/table updates, preserve manual prose, surface contradictions instead of resolving them.
-5. Update `_docs/arch/index.md` link list if a new arch file was created for the first time.
+5. Update `_docs/arch/index.md` link list if a new arch file was created for the first time. If a
+   new `arch/*.md` file was created, the root `_docs/index.md` (which lists `arch/` file-by-file)
+   is now stale — say so and suggest `/project-sync`; never edit the root index here, it belongs
+   to `/project-sync`.
 6. Append a `_docs/log.md` entry: `**Update**: Arch-synced [section list].`
 7. If this was a first-run bootstrap, suggest to the user that a `TASK-000` (architecture snapshot) and any retroactive ADRs for undocumented-but-already-made decisions be created via `/task-new`.
 8. Do not ask back beyond step 1 and any contradiction found in step 4 — otherwise create/update the files, then output: "`arch/` synced: [N] files updated, [N] contradictions flagged for review."

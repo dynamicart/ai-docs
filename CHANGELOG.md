@@ -5,6 +5,41 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-09-23
+
+### Added
+- README Quick Start: instructions for starting a new project from the `release` branch, and for adding the framework to an existing project without overwriting its `README.md`/`LICENSE`/`.gitignore`/`CHANGELOG.md`.
+- `/project-sync` first-run mode: when `PROJECT-OVERVIEW.md` doesn't exist yet, it asks the user for the project's identity (name, purpose, goals, stack, owner) instead of deriving it from framework files.
+
+### Changed
+- `/install`:
+  - New step 0 warns (never deletes) when `_docs/` still holds AI Docs' own docs, i.e. the repo was cloned from `main` instead of `release`.
+  - The native-file table now covers `AGENTS.md`, `.cursor/rules/*.mdc` (`alwaysApply: true`) and `.windsurf/rules/` (`trigger: always_on`); `.cursorrules`/`.windsurfrules` are marked as legacy.
+  - For Claude Code and Gemini CLI, the bridge now includes an `@agent.md` import, so `agent.md`'s own `@_docs/index.md` import actually resolves natively.
+  - Native command wrappers forward `$ARGUMENTS`, and they carry an `<!-- AI_DOCS_WRAPPER -->` marker so re-runs can add, refresh and prune them without touching user-authored commands.
+  - Re-running on an installed agent now refreshes the wrappers instead of stopping.
+  - The bridge lists `PROJECT-OVERVIEW.md` among the generated files and states the first-time order (`/project-sync`, then `/agent-sync`).
+- `/agent-sync` takes the project description from `PROJECT-OVERVIEW.md` (stable parts) and the root `README.md`, no longer from `_docs/README.md` (which describes the documentation system, not the project). On a fresh project it defers to `/project-sync` instead of describing the framework.
+
+### Fixed
+- README no longer claims that Claude Code, Antigravity and OpenCode natively auto-load `.agents/` and `agent.md`.
+
+## [0.3.0] - 2026-09-06
+
+### Changed
+- **Reworked the division of responsibility between `agent.md`, `_docs/PROJECT-OVERVIEW.md`, and `_docs/index.md`** to remove the drift risk of two "current status" copies:
+  - `agent.md` (`/agent-sync`) is now a *stable*, agent-facing digest only — about the project, tech stack, a "Where things live" directory map, and stable conventions — ending in an `@_docs/index.md` import. It no longer carries Active Tasks / Recent Journals / Key Decisions / Open Questions sections.
+  - `/project-sync` is now the sole generator of dynamic project status (active tasks, decisions, recent journals) and of `_docs/index.md` itself, which becomes a generated, file-level bundle map (nested links into `arch/`, `spec/`, `tasks/index.md`, `journal/index.md`, `modules/index.md`, and all root documents) instead of a hand-maintained flat list.
+  - `/task-close` and `/agent-sync` updated to match: task-close now offers `/project-sync` for a status refresh and `/agent-sync` only when a stable fact changed, instead of writing task/decision data into `agent.md` directly.
+- `/arch-sync` now appends an entry to `_docs/log.md` on every run, and flags the root `_docs/index.md` as stale (suggesting `/project-sync`) whenever a new `arch/*.md` file is created for the first time.
+- Added an "exploration-cost trigger" to the style guide's maintenance routine: agents should proactively propose `/module-sync <module-name>` at the end of a task when reconstructing an implicit convention required disproportionate discovery effort, so the reconstruction is captured once as a durable module doc.
+- `_docs/_templates/AGENT-template.md` and `PROJECT-OVERVIEW-template.md` restructured to match the new stable/dynamic split; `INDEX-template.md` and `LOG-template.md` updated to document root-index ownership (`/project-sync`) and the wider set of commands appending to `log.md`.
+- Added a `related_modules` frontmatter field to `TASK-template.md`, read by the `modules/*.md` Dataview blocks (updated to match) to list which tasks touch a given module.
+- `agent.md` and `_docs/index.md` regenerated to the new format; `_docs/PROJECT-OVERVIEW.md` generated for this repository for the first time via `/project-sync`.
+
+### Fixed
+- A typo in the root `README.md`'s `/install` quick-start step.
+
 ## [0.2.1] - 2026-09-04
 
 ### Added

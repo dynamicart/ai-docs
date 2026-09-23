@@ -54,12 +54,20 @@ project-name/
 ├── _docs/
 │   ├── index.md               ← OKF bundle root index (§6)
 │   ├── log.md                 ← OKF chronological history (§7)
+│   ├── PROJECT-OVERVIEW.md    ← this file
+│   ├── DECISIONS-LOG.md
+│   ├── BOARD.md               ← generated kanban view (/board-sync)
 │   ├── tasks/
 │   │   └── index.md
 │   ├── journal/
 │   │   └── index.md
-│   ├── PROJECT-OVERVIEW.md   ← this file
-│   └── DECISIONS-LOG.md
+│   ├── arch/                  ← live architecture references (/arch-sync)
+│   │   └── index.md
+│   ├── spec/
+│   │   └── index.md
+│   ├── modules/               ← durable module references (/module-sync)
+│   │   └── index.md
+│   └── _templates/
 └── ...
 ```
 
