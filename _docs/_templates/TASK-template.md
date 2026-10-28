@@ -37,10 +37,12 @@ verified: []
 
 ## Planning Reference
 
-> If there was a separate planning session or spec file, refer to it:
+> If there was a separate planning session, human brief, or technical plan, refer to it:
 >
+> - Brief: [TASK-000 Brief](/tasks/briefs/TASK-000_brief.md) (if human-authored brief exists)
+> - Implementation Plan: [TASK-000 Plan](/tasks/plans/TASK-000_plan.md) (if technical plan was drafted)
 > - Session: [JOURNAL-2025-01-01-topic](/journal/JOURNAL-2025-01-01-topic.md)
-> - Spec file: `_docs/specs/feature-xyz.md`
+> - Spec file: `_docs/spec/feature-xyz.md`
 > - Related decision: [ADR-NNN](/DECISIONS-LOG.md#adr-nnn)
 
 ## Approach / Plan

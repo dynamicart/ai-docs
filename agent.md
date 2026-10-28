@@ -42,6 +42,7 @@ ai-docs/
 ## What you need to know before working
 
 - Full development documentation lives in the `_docs/` folder.
+- **Documentation first (Zero blind probing):** Never probe the environment via shell commands (e.g. `php -v`, `node -v`) or spawn exploratory subagents before consulting the Tech Stack section above and `_docs/arch/` (e.g. `STACK.md`). The tech stack and invariants are documented; only run discovery commands if the information is missing from the docs.
 - `_docs/` is an OKF v0.2 bundle: every TASK/JOURNAL/ADR/MODULE is a concept with a `type`
   frontmatter field; use bundle-relative links (`/tasks/...`), never `[[wikilinks]]`.
 - **Generated — never hand-edit:** `_docs/BOARD.md` (`/board-sync`), `_docs/index.md` and

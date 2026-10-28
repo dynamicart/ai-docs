@@ -6,7 +6,7 @@ description: One-time bootstrap for a new AI agent on this project. Builds a nat
 
 `AI Docs` is agent-agnostic: its own instructions live in `.agents/` (rules, skills, workflow/`/`-command definitions) and its project knowledge lives in `_docs/`, distilled into `agent.md` at the repo root. Agentic tools generally do **not** auto-load `.agents/` or `agent.md` — each only auto-loads its own convention (e.g. `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`). Note that `agent.md` is not the `AGENTS.md` open standard: the names differ (and on case-sensitive filesystems they are different files), so no tool picks `agent.md` up by accident.
 
-`/install` only needs to run **once per agent** (not once per session): the first time this project is opened with a given AI agent. It detects that agent's native auto-loaded file and writes a bridge section into it, so from then on that agent picks up the framework by itself. Re-running it is safe: it never duplicates the bridge, and it refreshes the native command/skill wrappers (step 4b) so workflows added since the last run show up too.
+`/install` only needs to run **once per agent** (not once per session): the first time this project is opened with a given AI agent. It detects that agent's native auto-loaded file and writes a bridge section into it, so from then on that agent picks up the framework by itself. Re-running it is completely safe: it refreshes the bridge block in-place between markers and updates native command/skill wrappers (step 4b). For full repository-wide maintenance (directory verification, `agent.md` sync), see `/upgrade`.
 
 `/install` never creates, deletes, or resets anything in `_docs/` — project content is not its job. A project starts with an empty bundle only when it was created from the clean `release` branch (see the root `README.md`); step 0 catches the case where it wasn't.
 
@@ -53,7 +53,7 @@ Read the native file (create it if it doesn't exist yet, with the frontmatter fr
 <!-- AI_DOCS_BRIDGE_END -->
 ```
 
-- If found: the bridge is already installed. Do not rewrite it (unless the user asked to force-reinstall, in which case replace only the content between the markers). If the `Installed for:` line doesn't list the current agent yet (e.g. a second tool sharing `AGENTS.md`), append it to that line. Then skip to step 4b — the wrapper refresh still runs.
+- If found: the bridge is already installed. Refresh the block strictly between the `<!-- AI_DOCS_BRIDGE_START -->` and `<!-- AI_DOCS_BRIDGE_END -->` markers with the latest bridge content from step 4. Never touch any user content outside the markers! Preserve any existing agents already listed on the `Installed for:` line, appending the current `<agent-id>` if not yet present. Then proceed to step 4b (the wrapper refresh).
 - If not found: continue to step 4. Never touch any other content in the file — append the bridge block, preserving everything else verbatim.
 
 ### 4. Write the bridge block
@@ -67,9 +67,16 @@ Append this block (translate none of the literal paths/markers; fill in `<agent-
 <!-- Native import (Claude Code / Gemini CLI only): loads agent.md and its @_docs/index.md map. -->
 @agent.md
 
+### MANDATORY PRE-ACTION PROTOCOL: Documentation First (Zero Blind Probing)
+Before executing ANY shell command to inspect the environment or versions (e.g. `php -v`, `node -v`, `composer`, checking extensions/tools), and before spawning exploration subagents or running broad searches:
+1. **Consult `agent.md` first:** Tech stack, runtime requirements, directory layout, and key conventions are already distilled here.
+2. **Consult `_docs/index.md` & `_docs/arch/` (e.g. `STACK.md`):** Check if the required architectural, environment, or configuration detail is documented in the knowledge bundle.
+3. **DO NOT probe via shell or launch exploratory subagents** for information already present in `agent.md` or `_docs/`. Only execute discovery commands or spawn exploration agents if the required fact is demonstrably absent from the documentation.
+
 This project uses the **AI Docs** framework. Its own rules, skills, and workflow commands live outside this file, in `.agents/`, and are not part of your native auto-loading — treat this section as your entry point into them:
 
-- **At the start of every session**, read `agent.md` (repo root) unless it was already imported above — it is the "Shared Brain": a generated digest of the *stable* facts about this project (what it is, tech stack, where things live, the conventions you must follow), ending with an `@_docs/index.md` import that maps the whole knowledge bundle.
+- **At the start of every session / before taking action**, read `agent.md` (repo root) unless it was already imported above — it is the "Shared Brain": a generated digest of the *stable* facts about this project (what it is, tech stack, where things live, the conventions you must follow), ending with an `@_docs/index.md` import that maps the whole knowledge bundle.
+- **Subagent / Exploration Guard:** When delegating tasks to subagents, supply `agent.md` and the relevant `_docs/` paths directly so the subagent does not re-explore or blindly probe the environment.
 - **First-time setup:** if `_docs/PROJECT-OVERVIEW.md` doesn't exist yet, run `/project-sync` first (its first run asks the user about the project); if `agent.md` doesn't exist yet, run `/agent-sync` after that. The order matters: `/agent-sync` takes the project description from `PROJECT-OVERVIEW.md`.
 - **For the current project status** — active tasks, recent journals, key decisions, open questions — open `_docs/PROJECT-OVERVIEW.md` (or the files `_docs/index.md` points at). This is deliberately *not* duplicated in `agent.md`.
 - `_docs/modules/*.md` are durable, human-approved module references: read them for context, but only ever update one through an explicit `/module-sync` invocation.
