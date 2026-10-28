@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-10-28
+
+### Added
+- **Task Briefs & Implementation Plans:**
+  - `_docs/tasks/briefs/` directory for human-authored business requirements and acceptance criteria.
+  - `_docs/tasks/plans/` directory for agent-generated technical implementation plans.
+  - OKF v0.2 concept templates: `_docs/_templates/BRIEF-template.md` (`type: Brief`) and `_docs/_templates/PLAN-template.md` (`type: Plan`).
+  - `/plan-new [TASK-NNN | title]` workflow (`.agents/workflows/plan-new.md`) to create detailed implementation plans during task planning.
+  - `/task-new from-brief [brief-file]` option, plus automatic linking of existing brief/plan files into `TASK-NNN.md` with milestone extraction into the "Approach / Plan" checklist.
+- **Framework Upgrade Workflow:**
+  - `/upgrade` workflow (`.agents/workflows/upgrade.md`) to safely upgrade existing projects: refreshes the agent bridge in-place, syncs native command/skill wrappers, ensures required directory structures exist, and runs `/agent-sync`.
+
+### Changed
+- **Documentation First (Zero Blind Probing) Protocol:**
+  - Strict pre-action constraint added to `/install` bridge block, `AGENT-template.md`, and `agent.md`: agents are explicitly forbidden from running shell commands to probe the runtime environment (e.g. `php -v`, `node -v`, `composer`) or spawning blind exploration subagents before checking `agent.md` and `_docs/arch/STACK.md`.
+  - Added subagent exploration guard directing agents to provide `agent.md` and docs context directly when delegating tasks.
+- `/install`:
+  - Re-running `/install` on an already installed agent now refreshes the bridge block in-place strictly between `<!-- AI_DOCS_BRIDGE_START -->` and `<!-- AI_DOCS_BRIDGE_END -->` markers, preserving user content outside and retaining existing `Installed for:` history.
+- `TASK-template.md`: `Planning Reference` section now explicitly references Brief and Implementation Plan files.
+- Documentation skill (`.agents/skills/documentation/SKILL.md`) updated with Brief and Plan schemas, cross-linking examples, and directory index maintenance rules.
+
 ## [0.3.1] - 2026-09-23
 
 ### Added

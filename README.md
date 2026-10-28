@@ -179,10 +179,13 @@ All workflows live in `.agents/workflows/`. Supported commands:
 
 | Command | Description | Trigger |
 |---|---|---|
-| `/install` | Bootstraps a new AI agent's native bridge into the framework — writes a reference block into that agent's own auto-loaded file (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, etc.) pointing at `.agents/` and `agent.md`. | manual, once per agent |
+| `/install` | Bootstraps a new AI agent's native bridge into the framework — writes a reference block into that agent's own auto-loaded file (`CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, etc.) pointing at `.agents/` and `agent.md`. Re-running safely updates the bridge in-place. | manual, once per agent |
+| `/upgrade` | Upgrades the framework in an existing project: refreshes the native agent bridge in-place, syncs native command/skill wrappers, ensures required directory structures exist, and runs `/agent-sync`. | manual |
 | `/agent-sync` | Update the `agent.md` file. | manual |
-| `/task-new [title]` | Creates a new `TASK-NNN_name.md` file from the template. | manual |
+| `/task-new [title]` | Creates a new `TASK-NNN_name.md` file from the template (auto-links matching briefs and plans). | manual |
+| `/task-new from-brief [brief-file]` | Creates a new TASK based on a human-authored brief in `_docs/tasks/briefs/`. | manual |
 | `/task-new from-journal` | Creates a new TASK based on a closed JOURNAL entry. | manual |
+| `/plan-new [TASK-NNN \| title]` | Generates or updates a detailed technical implementation plan in `_docs/tasks/plans/`. | manual |
 | `/task-close [TASK-NNN]` | Closes the task, updates status, records decisions into `DECISIONS-LOG.md`. | manual |
 | `/task-close with-journal [TASK-NNN]` | Closes the task AND distills a final journal entry. | manual |
 | `/journal-distill` | Saves the essence of the current chat session into a structured JOURNAL file. | manual |
@@ -194,32 +197,33 @@ All workflows live in `.agents/workflows/`. Supported commands:
 ### Typical daily workflow
 
 ```
-# Begin new work
+# 1. (Optional) Human writes a brief in _docs/tasks/briefs/TASK-001_brief.md
+
+# 2. Plan technical implementation with the agent
+/plan-new TASK-001
+# → Generates _docs/tasks/plans/TASK-001_plan.md
+
+# 3. Begin new work (or /task-new from-brief _docs/tasks/briefs/TASK-001_brief.md)
 /task-new title="Add user authentication"
-# → BOARD.md updates automatically
+# → BOARD.md updates automatically with milestones from the plan
 
-# ... planning happens ...
-
-# Save important decisions from the chat
+# 4. Save important decisions from chat
 /journal-distill
 
-# ... development happens ...
-# check off items in the TASK's "Approach / Plan" checklist as you go
+# 5. Development happens... check off items in the TASK's "Approach / Plan" checklist as you go
 
-# Finish the task
+# 6. Finish the task
 /task-close with-journal TASK-001
 # → BOARD.md updates automatically
 
-# Update the Shared Brain for next time
+# 7. Update Shared Brain and architecture references if structural changes occurred
 /agent-sync
+/arch-sync
 
 # Update the project map for next time if necessary
 /project-sync
 
-# Keep the architecture reference current after structural changes
-/arch-sync
-
-# Update a specific module's docs after a task that touched it (human-approved)
+# 8. Update module docs if a specific module's invariants were touched
 /module-sync billing TASK-001
 ```
 

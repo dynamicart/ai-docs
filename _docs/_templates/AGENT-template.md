@@ -42,6 +42,7 @@ project-name/
 Only things that rarely change — no status, no task lists. e.g.:]
 
 - Full development documentation lives in the `_docs/` folder.
+- **Documentation first (Zero blind probing):** Never probe the environment via shell commands (e.g. `php -v`, `node -v`) or spawn exploratory subagents before consulting the Tech Stack section above and `_docs/arch/` (e.g. `STACK.md`). The tech stack and invariants are documented; only run discovery commands if the information is missing from the docs.
 - `_docs/` is an OKF v0.2 bundle: use bundle-relative links (`/tasks/...`), never `[[wikilinks]]`.
 - `_docs/BOARD.md`, `_docs/index.md`, and `_docs/log.md` are generated — never edit them by hand.
 - `_docs/modules/*.md` are durable references, updated only via `/module-sync` (manual, human-approved).

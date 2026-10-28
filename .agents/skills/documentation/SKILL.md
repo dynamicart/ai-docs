@@ -108,11 +108,41 @@ generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
 verified: []                       # same shape as TASK.verified — never self-verified by an agent
 ```
 
+**BRIEF schema** (human-authored task requirements, stored in `_docs/tasks/briefs/`):
+```yaml
+type: Brief                        # REQUIRED (OKF) — concept category
+id: BRIEF-TASK-NNN
+task_id: TASK-NNN
+title: "Brief: [Task Name]"
+project: "project-name"
+author: human
+status: "ready"                    # draft | ready | revised
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+tags: [brief]
+```
+
+**PLAN schema** (agent-generated technical plan, stored in `_docs/tasks/plans/`):
+```yaml
+type: Plan                         # REQUIRED (OKF) — concept category
+id: PLAN-TASK-NNN
+task_id: TASK-NNN
+title: "Implementation Plan: [Task Name]"
+project: "project-name"
+status: "proposed"                 # proposed | approved | in-progress | completed
+created: YYYY-MM-DD
+updated: YYYY-MM-DD
+generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
+tags: [plan]
+```
+
 ### 5. Cross-linking (OKF-conformant — replaces Obsidian wikilinks)
 
 Every reference between concepts MUST use a standard markdown link, bundle-relative to `_docs/` (leading `/`) — NOT the `[[wikilink]]` syntax:
 
 - ✅ `[TASK-014](/tasks/TASK-014_add-auth.md)`
+- ✅ `[Brief](/tasks/briefs/TASK-014_brief.md)`
+- ✅ `[Plan](/tasks/plans/TASK-014_plan.md)`
 - ✅ `[ADR-003](/DECISIONS-LOG.md#adr-003)`
 - ❌ `[[TASK-014]]` — Obsidian-only syntax; invisible to any generic OKF consumer (including the OKF reference visualizer), so it breaks the cross-link graph outside Obsidian.
 
@@ -123,6 +153,8 @@ Obsidian renders standard markdown links and still tracks them for backlinks, so
 A directory `index.md` carries no frontmatter — its body is a flat link list grouped under headings. Update the relevant directory's `index.md` whenever a concept is added, closed, or renamed:
 
 - New/closed TASK → update `_docs/tasks/index.md`
+- New BRIEF → update `_docs/tasks/briefs/index.md`
+- New PLAN → update `_docs/tasks/plans/index.md`
 - New JOURNAL → update `_docs/journal/index.md`
 - New/deprecated MODULE → update `_docs/modules/index.md` (manually — `/module-sync` does not auto-maintain this, see §11)
 
