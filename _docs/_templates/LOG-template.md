@@ -1,9 +1,6 @@
 # [Directory] Update Log
 
-> OKF reserved file (spec §7) — flat, date-grouped chronological history, newest first.
-> Appended (never rewritten) by `/task-new`, `/task-close`, `/journal-distill`, `/arch-sync`.
-> Not written by `/agent-sync`, `/project-sync`, `/module-sync`, or `/board-sync`.
-> This is separate from `DECISIONS-LOG.md`, which stays the detailed, per-ADR archive.
+> OKF reserved file (spec §7) — date-grouped history, newest first. Append-only, written by `/task-new`, `/task-close`, `/journal-distill`, `/arch-sync` (not by `/agent-sync`, `/project-sync`, `/module-sync`, `/board-sync`). Separate from `DECISIONS-LOG.md`.
 
 ## YYYY-MM-DD
 * **Creation**: Opened [TASK-NNN](tasks/TASK-NNN_slug.md).

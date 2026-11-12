@@ -17,8 +17,7 @@ tags:
 
 ## 1. Technical Summary & Approach
 
-> Concise overview of the technical strategy: architecture choices, patterns used, and trade-offs considered.
-> Mention any relevant ADRs or invariants.
+> Architecture choices, patterns, trade-offs; mention relevant ADRs/invariants.
 
 ## 2. Affected Files & Components
 
@@ -28,7 +27,7 @@ tags:
 
 ## 3. Step-by-Step Technical Plan
 
-> Detailed technical breakdown with data structures, method signatures, SQL queries, or configuration changes.
+> Data structures, signatures, SQL, config changes.
 
 ### Step 1: [Component / Layer]
 - **Details:** 
@@ -40,7 +39,7 @@ tags:
 
 ## 4. Verification & Testing Strategy
 
-> Specific test cases, manual verification steps, and expected outputs.
+> Test cases, manual steps, expected outputs.
 
 - [ ] Automated tests: (unit/integration test files to add or run)
 - [ ] Manual verification steps: (exact URLs, API calls, or user actions to verify)
@@ -54,7 +53,7 @@ tags:
 
 ## 6. High-Level Milestones (for TASK-NNN Approach / Plan)
 
-> The concise, high-level checklist to be synced into `TASK-NNN.md` "Approach / Plan" section (read by `/board-sync`):
+> Synced into TASK-NNN "Approach / Plan" (read by `/board-sync`):
 
 - [ ] Milestone 1: ...
 - [ ] Milestone 2: ...

@@ -17,7 +17,7 @@ the same fact.
 
 ## Source files (read in order):
 
-1. **_docs/_templates/AGENT-template.md** — Preserving the basic structure and manual sections.
+1. **_docs/_templates/AGENT-template.md** — Preserving the basic structure, concise format, and manual sections.
 2. **_docs/index.md** — OKF bundle root index; sanity-check that the `@_docs/index.md` import
    and the "Where things live" pointers below stay valid (nothing listed there is missing, no
    dead links).
@@ -41,22 +41,24 @@ to copy — those stay pointers only (see Generation Rules).
 
 ## Generation Rules:
 
-1. **Boundaries:** Always respect the `<!-- AGENT_SYNC_BOUNDARY -->` marker. Only overwrite the part above it!
-2. **About the Project:** Summarize the essence based on `PROJECT-OVERVIEW.md`'s stable parts, the root `README.md` (if it describes this project) and `arch/`/`spec/` files (2-3 sentences).
-3. **Tech Stack:** Collect technologies (source: `arch/STACK.md` if present, otherwise `PROJECT-OVERVIEW.md`'s stack).
-4. **Where things live:** A short, stable directory map (source: `arch/DIRECTORY-MAP.md` if
+1. **Boundaries:** Always respect the `<!-- AGENT_SYNC_BOUNDARY: do not edit above; manual notes below -->` marker (or legacy `<!-- AGENT_SYNC_BOUNDARY -->`). Only overwrite the part above it!
+2. **Header & Comments:** Keep comments minimal. Use only the single-line scope comment:
+   `<!-- Stable facts only. Dynamic status: _docs/PROJECT-OVERVIEW.md -->`. Do not add multi-line explanatory HTML comments.
+3. **About the Project:** Summarize the essence in 1-2 concise sentences (core purpose, main tech/runtime, primary deliverable) without narrative filler or boilerplate.
+4. **Tech Stack:** Collect key technologies concisely as short bullet points; avoid duplicating file paths or directories described in "Where things live".
+5. **Where things live:** A short, stable directory map (source: `arch/DIRECTORY-MAP.md` if
    present, otherwise the real top-level folder structure) — enough for an agent to orient
    without exploring the tree.
-5. **What you need to know before working:** Stable conventions/rules (coding style,
-   documentation rules, manual-test policy, OS quirks, etc.) — unchanged in spirit from before.
-   Include the generated-file rules (`BOARD.md`/`index.md`/`log.md` are never hand-edited) and the
-   `_docs/modules/*.md` manual-only, human-approved rule — these are stable conventions, not status,
-   so they belong here rather than behind the import.
-6. **Where to look for more:** Always end the generated part with an `@_docs/index.md` import
-   (Claude Code's native `@import` syntax) so the full `_docs` map — tasks, journals, decisions,
-   arch, spec — is pulled in automatically every session, at near-zero token cost, instead of
-   being copied and re-summarized here. Do not also inline Active Tasks / Recent Journals / Key
-   Decisions / Open Questions sections — those are `/project-sync`'s job.
+6. **What you need to know before working:** High signal-to-noise rules. Avoid preambles and explanatory filler:
+   - State rules directly (e.g. `Zero blind probing` in 1-2 lines).
+   - Bundle-relative links for OKF v0.2.
+   - List generated files (`BOARD.md`, `index.md`, `PROJECT-OVERVIEW.md`, `agent.md`) that must never be hand-edited.
+   - Rule that `_docs/modules/*.md` are updated only via manual `/module-sync`.
+   - Rule that `_docs/log.md` is append-only.
+   - Rule on documenting major decisions in TASK / ADR.
+   - Rule on executing `.agents/workflows/` as written.
+   - Always run `/task-close` upon task completion.
+7. **Where to look for more:** End with a single-line pointer (`Dynamic status, tasks, journals, ADRs: see _docs/PROJECT-OVERVIEW.md or index below.`) followed immediately by the `@_docs/index.md` import.
 
 ## /agent-sync command execution:
 
@@ -69,5 +71,5 @@ to copy — those stay pointers only (see Generation Rules).
 
 ## AGENT.MD SIZE LIMITS
 
-`agent.md` should remain under ~80 lines for efficient readability — it now holds only stable,
-rarely-changing facts plus one map import, so it should rarely need to grow.
+`agent.md` should remain strictly under ~50 lines for maximum token efficiency — it holds only stable,
+rarely-changing facts plus one map import.

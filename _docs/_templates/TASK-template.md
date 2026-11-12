@@ -18,7 +18,7 @@ journals:
   - JOURNAL-2025-01-01-topic
 related_tasks: []
 related_modules: []
-# module ids (e.g. MODULE-billing) this task touches — read by the modules/*.md Dataview blocks
+# module ids (e.g. MODULE-billing) touched — read by modules/*.md Dataview
 complexity: "medium"
 # complexity values: small | medium | large | epic
 generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
@@ -37,7 +37,7 @@ verified: []
 
 ## Planning Reference
 
-> If there was a separate planning session, human brief, or technical plan, refer to it:
+> Link any brief, plan, session, spec or ADR:
 >
 > - Brief: [TASK-000 Brief](/tasks/briefs/TASK-000_brief.md) (if human-authored brief exists)
 > - Implementation Plan: [TASK-000 Plan](/tasks/plans/TASK-000_plan.md) (if technical plan was drafted)
@@ -47,11 +47,7 @@ verified: []
 
 ## Approach / Plan
 
-> How will it be implemented? Main steps, components. Written as a checklist: this list
-> IS the task's subtask tracker — check items off as they're completed, don't just narrate
-> them in prose elsewhere. `/board-sync` reads this checklist verbatim to render subtask
-> progress on the board (see `_docs/BOARD.md`), so keep each item a short, checkable unit
-> of work, not a paragraph.
+> Main steps/components as a checklist. This list IS the subtask tracker: check items off, don't narrate progress elsewhere. `/board-sync` reads it verbatim, so keep each item a short, checkable unit.
 
 - [ ]
 - [ ]
@@ -59,7 +55,7 @@ verified: []
 
 ## Decisions
 
-> Every major decision point: what was the question, what options were there, what was chosen and why.
+> Each major decision: question, options, choice, why.
 
 ### Decision 1: [Subject of Decision]
 
@@ -70,8 +66,7 @@ verified: []
 
 ## Implementation
 
-> Description of the actual solution: how it was done, what-why-how.
-> Code snippets, commands, configuration as needed.
+> The actual solution (what-why-how); snippets/commands/config as needed.
 
 ### Key Changes / Components
 
@@ -79,11 +74,11 @@ verified: []
 
 ### Technical Details
 
-> Specific implementation notes worth preserving.
+> Implementation notes worth preserving.
 
 ## Issues and Solutions
 
-> Obstacles and errors encountered along the way, and how they were solved.
+> Obstacles/errors met and how they were solved.
 
 | Issue | Solution |
 | -------- | -------- |
@@ -91,7 +86,7 @@ verified: []
 
 ## Result
 
-> What is finished? Does it meet the original goal? What was left out (if anything)?
+> What is finished? Goal met? What was left out?
 
 - [ ] Original goal achieved
 - [ ] Tested
@@ -99,14 +94,13 @@ verified: []
 
 ## Open Questions / Next Steps
 
-> What follows from this, or what remains open.
+> Follow-ups and open points.
 
 -
 
 ## Agent Summary
 
-> This section is filled in by the distilling agent upon task closure.
-> Machine-readable concise summary for wiki vault processing.
+> Filled by the agent at task closure; machine-readable summary.
 
 ```
 TASK_ID: TASK-000

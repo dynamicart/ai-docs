@@ -35,8 +35,6 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 
 ## Deployment notes
 
-> How does config get from `.env.example` to a real environment? Manual? CI secret store?
-> Anything that must be done manually after a fresh deploy (permissions, cache warmup,
-> migrations)?
+> How config gets from `.env.example` to a real environment (manual? CI secrets?); manual post-deploy steps (permissions, cache warmup, migrations).
 
 -

@@ -64,7 +64,9 @@ project-root/
 │   ├── workflows/            ← /command workflow definitions
 │   ├── skills/               ← Reusable agent skills
 │   |   └── documentation/
-│   |       └── SKILL.md      ← Documentation skills
+│   |       ├── SKILL.md      ← Documentation skills
+│   |       └── references/
+│   |           └── schemas.md ← YAML frontmatter schemas (loaded on demand)
 │   └── rules/                ← Rules for the agent
 │       └── style-guide.md    ← Style guide and conventions
 ├── tool/
@@ -82,7 +84,7 @@ project-root/
     ├── modules/              ← [MANUAL] durable per-module reference docs (via /module-sync) (+ index.md)
     ├── arch/                 ← [GENERATED] stack, directory map, entry points, DB schema, config/env, integrations (via /arch-sync)
     ├── spec/                 ← Business specs, user stories
-    └── _templates/           ← Templates for all document types (TASK, JOURNAL, MODULE, BOARD, PROJECT-OVERVIEW, DECISIONS-LOG, plus the arch/* templates)
+    └── _templates/           ← Templates for all document types (TASK, BRIEF, PLAN, JOURNAL, MODULE, BOARD, PROJECT-OVERVIEW, DECISIONS-LOG, plus the arch/* templates)
 ```
 
 ---
@@ -184,7 +186,7 @@ All workflows live in `.agents/workflows/`. Supported commands:
 | `/agent-sync` | Update the `agent.md` file. | manual |
 | `/task-new [title]` | Creates a new `TASK-NNN_name.md` file from the template (auto-links matching briefs and plans). | manual |
 | `/task-new from-brief [brief-file]` | Creates a new TASK based on a human-authored brief in `_docs/tasks/briefs/`. | manual |
-| `/task-new from-journal` | Creates a new TASK based on a closed JOURNAL entry. | manual |
+| `/task-new from-journal [journal-file]` | Creates a new TASK based on a closed JOURNAL entry. | manual |
 | `/plan-new [TASK-NNN \| title]` | Generates or updates a detailed technical implementation plan in `_docs/tasks/plans/`. | manual |
 | `/task-close [TASK-NNN]` | Closes the task, updates status, records decisions into `DECISIONS-LOG.md`. | manual |
 | `/task-close with-journal [TASK-NNN]` | Closes the task AND distills a final journal entry. | manual |

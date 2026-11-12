@@ -1,81 +1,58 @@
 ---
-description: Upgrades the AI Docs framework in an existing project: refreshes the native agent bridge in-place, syncs native command/skill wrappers, ensures required directory structures exist, and runs /agent-sync.
+description: Upgrades AI Docs in an existing project: refreshes native bridge in-place, syncs wrappers, verifies directory structure, and runs /agent-sync.
 ---
 
-## Why this workflow exists
+## /upgrade
 
-As the AI Docs framework evolves (new conventions, stricter agent protocols, new workflow commands like `/plan-new` or subdirectories like `briefs/` and `plans/`), existing projects need a safe, one-command way to bring their configuration up to date without losing any project data or manual customizations.
+Idempotent and safe: never touches user tasks, journals, ADRs, or project code.
 
-`/upgrade` is idempotent and completely safe:
-- Never touches user tasks, journals, ADRs, or project code.
-- Only modifies content strictly inside the `<!-- AI_DOCS_BRIDGE_START -->` / `<!-- AI_DOCS_BRIDGE_END -->` markers in your native agent instructions file, leaving your own custom rules outside untouched.
-- Refreshes generated command wrappers (`<!-- AI_DOCS_WRAPPER -->`), leaving custom commands untouched.
-- Ensures missing framework directories exist with proper index files.
-- Refreshes `agent.md` above the `<!-- AGENT_SYNC_BOUNDARY -->` marker.
+### 1. Identify Agent & Native File
 
-## /upgrade command execution
+Identify current agent and its auto-loaded instructions file:
+- **Claude Code**: `CLAUDE.md` (supports `@path` imports)
+- **Gemini CLI**: `GEMINI.md` (supports `@path` imports)
+- **Codex / OpenCode / AGENTS.md tools**: `AGENTS.md`
+- **Cursor**: `.cursor/rules/ai-docs.mdc` (`alwaysApply: true` frontmatter)
+- **Windsurf**: `.windsurf/rules/ai-docs.md` (`trigger: always_on` frontmatter)
+- **GitHub Copilot**: `.github/copilot-instructions.md`
+- **Other**: Check tool conventions or ask user.
 
-### 1. Identify agent and native instructions file
-
-Determine the current AI agent running this session (same resolution as `.agents/workflows/install.md` step 2):
-
-| Agent | Native file | Notes |
-|---|---|---|
-| Claude Code | `CLAUDE.md` | Supports `@path` imports. |
-| Gemini CLI | `GEMINI.md` | Supports `@path` imports. |
-| Codex, OpenCode, and tools using `AGENTS.md` | `AGENTS.md` | Shared by all AGENTS.md-compatible tools. |
-| Cursor | `.cursor/rules/ai-docs.mdc` | `alwaysApply: true` frontmatter. |
-| Windsurf | `.windsurf/rules/ai-docs.md` | `trigger: always_on` frontmatter. |
-| GitHub Copilot | `.github/copilot-instructions.md` | |
-| Others | Consult tool documentation or ask the user. | |
-
-### 2. In-place Bridge Update
+### 2. In-Place Bridge Update
 
 Read the native instructions file:
-1. Locate the bridge section delimited by:
-   ```
-   <!-- AI_DOCS_BRIDGE_START -->
-   ...
-   <!-- AI_DOCS_BRIDGE_END -->
-   ```
-2. Read the latest bridge template from `.agents/workflows/install.md` (Step 4), including the `MANDATORY PRE-ACTION PROTOCOL: Documentation First`.
-3. If an existing bridge was found:
-   - Extract any existing agents listed on the `Installed for:` line and merge the current `<agent-id>`.
-   - Replace **strictly the content between the markers** with the latest bridge block.
-   - **Never modify** any content before `<!-- AI_DOCS_BRIDGE_START -->` or after `<!-- AI_DOCS_BRIDGE_END -->`.
-4. If no bridge section exists yet:
-   - Append the complete bridge block to the file, preserving all existing content verbatim.
+1. Locate markers: `<!-- AI_DOCS_BRIDGE_START -->` ... `<!-- AI_DOCS_BRIDGE_END -->`.
+2. Get latest bridge template from `.agents/workflows/install.md` (Step 3).
+3. If bridge exists:
+   - Preserve existing `Installed for:` agents and append `<agent-id>`.
+   - Replace **strictly the content between the markers**. Never touch content outside.
+4. If bridge is missing: append the bridge block to the end of the file.
 
-### 3. Sync Native Command and Skill Wrappers
+### 3. Sync Command & Skill Wrappers
 
-If the agent supports native command or skill directories (e.g. Claude Code `.claude/commands/` and `.claude/skills/`):
+If the agent supports native folders (e.g. Claude Code `.claude/`):
+- **Commands**: For each `.agents/workflows/*.md`, create/refresh a thin wrapper with `<!-- AI_DOCS_WRAPPER -->` (see `install.md` step 4). Remove wrappers with this marker if source workflow was deleted.
+- **Skills**: For each `.agents/skills/*/SKILL.md`, create/refresh thin wrapper carrying `<!-- AI_DOCS_WRAPPER -->`. Remove orphaned wrappers.
 
-1. **Commands:** For every `.agents/workflows/*.md` (including `/plan-new`, `/upgrade`, etc.), create or refresh its thin wrapper carrying `<!-- AI_DOCS_WRAPPER -->` (see `install.md` step 4b). Remove any wrapper carrying that marker whose source workflow no longer exists.
-2. **Skills:** For every `.agents/skills/*/SKILL.md`, create or refresh its thin wrapper carrying `<!-- AI_DOCS_WRAPPER -->`. Remove orphaned wrappers.
+### 4. Verify & Bootstrap Directories
 
-### 4. Verify & Bootstrap Framework Directories
+Ensure standard folders exist under `_docs/` (create with `.gitkeep` and `index.md` if missing):
+- `_docs/tasks/briefs/`
+- `_docs/tasks/plans/`
+- `_docs/modules/`
+- `_docs/arch/`
+- `_docs/spec/`
+- `_docs/journal/`
 
-Check if the standard framework directories exist under `_docs/`. If any are missing, create them with their `.gitkeep` and `index.md`:
-
-- `_docs/tasks/briefs/` (human-written task briefs)
-- `_docs/tasks/plans/` (agent-generated technical plans)
-- `_docs/modules/` (durable module references)
-- `_docs/arch/` (architecture live references)
-- `_docs/spec/` (business specifications)
-- `_docs/journal/` (session journals)
-
-Ensure `_docs/tasks/index.md` contains links to `briefs/` and `plans/` under a `# Subdirectories` heading if not present.
+Ensure `_docs/tasks/index.md` contains links to `briefs/` and `plans/` under a `# Subdirectories` heading.
 
 ### 5. Refresh Shared Brain (`agent.md`)
 
-If `agent.md` exists:
-1. Run `.agents/workflows/agent-sync.md` to regenerate `agent.md` above the `<!-- AGENT_SYNC_BOUNDARY -->` marker.
-2. This ensures `agent.md` reflects any updated rules (e.g. Documentation first, zero blind probing) and includes current stack details.
+If `agent.md` exists, run `.agents/workflows/agent-sync.md` to refresh content above the `<!-- AGENT_SYNC_BOUNDARY -->` marker.
 
-### 6. Confirm and Report
+### 6. Report
 
-Output a clear, bulleted summary of what was upgraded:
-- Native bridge status: updated in `<native file>` (protocol updated to latest).
-- Command & skill wrappers: [N] refreshed, [N] added, [N] removed.
-- Directories: verified [N] folders (created any missing ones).
-- Shared Brain: `agent.md` synced.
+Output summary:
+- Native bridge updated in `<file>`.
+- Wrappers: [N] refreshed, [N] added, [N] removed.
+- Directories: verified [N] folders.
+- `agent.md` synced.

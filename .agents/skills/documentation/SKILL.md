@@ -1,5 +1,5 @@
 ---
-name: Documentation Workflow
+name: documentation
 description: Rules and logic for creating, managing, and closing project documentation (tasks, journals, ADRs), conformant with the Open Knowledge Format (OKF v0.2). Activate this skill when creating new tasks, distilling chat sessions into journals, closing tasks, or maintaining index.md/log.md files.
 ---
 
@@ -40,101 +40,22 @@ If multiple Journals are created in a single day, mark the difference in the slu
 
 ### 4. YAML Frontmatter schemas (OKF v0.2-conformant)
 
-Every concept's frontmatter starts with the OKF-required `type` field — the concept's category, used by OKF-generic consumers for routing/filtering. This is distinct from the project's own `status` field (workflow state) and from JOURNAL's `journal_type` (session kind, see below).
+Every concept's frontmatter starts with the OKF-required `type` field — the concept's category, used by OKF-generic consumers for routing/filtering. This is distinct from the project's own `status` field (workflow state) and from JOURNAL's `journal_type` (session kind).
 
-**TASK schema:**
-```yaml
-type: Task                         # REQUIRED (OKF) — concept category, do not repurpose
-id: TASK-NNN
-title: "Title"
-description: "One-sentence summary of what this task achieves."   # OKF recommended
-project: "project-name"
-status: "planning" # planning | in-progress | review | done | postponed
-priority: "medium" # critical | high | medium | low
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-completed:
-resource: ""                       # optional (OKF) — canonical URI: PR / branch / issue link
-tags: []
-journals: []
-related_tasks: []
-related_modules: []                # module ids this task touches — read by modules/*.md Dataview
-complexity: "medium"
-# complexity values: small | medium | large | epic
-generated: { by: "agent:<agent-id>", at: "<ISO8601>" }   # OKF v0.2 — who/when produced this file
-verified: []                       # OKF v0.2 — filled at /task-close on human approval, see §9
-```
+| Concept | `type` Value | Identifier Pattern | Standard Path |
+|---------|--------------|--------------------|---------------|
+| Task | `Task` | `TASK-NNN` | `_docs/tasks/TASK-NNN_slug.md` |
+| Journal | `Journal` | `JOURNAL-YYYY-MM-DD-slug` | `_docs/journal/JOURNAL-YYYY-MM-DD-slug.md` |
+| Module | `Module` | `MODULE-slug` | `_docs/modules/MODULE-slug.md` |
+| Brief | `Brief` | `BRIEF-TASK-NNN` | `_docs/tasks/briefs/TASK-NNN_brief.md` |
+| Plan | `Plan` | `PLAN-TASK-NNN` | `_docs/tasks/plans/TASK-NNN_plan.md` |
+
+> 📖 **Full schema specifications:**
+> When creating or editing frontmatter for any concept, consult [references/schemas.md](references/schemas.md) for the exact schema, required fields, allowed enum values, and metadata properties.
+>
+> ⚠️ **Breaking rename note:** the legacy `type: "planning"` field (session kind) in journals is now `journal_type`. `type` is strictly reserved for the OKF concept category (`Journal`). See §10 for migrating pre-existing journals.
 
 The body's "Approach / Plan" section is a checkbox list (`- [ ] step`), not a numbered list — this doubles as the task's subtask tracker. `/board-sync` reads it verbatim to render subtask progress on `_docs/BOARD.md`, see §12. Check items off as work progresses; don't narrate progress elsewhere instead of checking the box.
-
-**JOURNAL schema:**
-```yaml
-type: Journal                      # REQUIRED (OKF) — concept category
-id: JOURNAL-YYYY-MM-DD-slug
-title: "Short topic description"   # OKF recommended, mirrors `topic`
-description: "One-sentence summary of the session outcome."
-date: YYYY-MM-DD
-project: "project-name"
-topic: "Topic"
-journal_type: "planning"           # renamed from the old `type` field
-# journal_type values: planning | debugging | review | decision | brainstorm
-duration_approx: "N min"
-related_tasks: []
-participants: [human, ai-agent]
-outcome: "Summary"
-tags: []
-generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
-```
-
-> ⚠️ **Breaking rename:** the old `type: "planning"` field (session kind) is now `journal_type`. `type` is reserved for the OKF concept category (`Journal`). See §10 for migrating pre-existing journals.
-
-**MODULE schema** (durable code-unit reference, see §11):
-```yaml
-type: Module                       # REQUIRED (OKF) — concept category
-id: MODULE-slug
-title: "Module Name"
-description: "One-sentence summary of this module's responsibility."
-project: "project-name"
-status: "active"                   # active | deprecated | planned
-owner: ""
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-stale_after: 90                    # days since last full human verification before needs-review
-tags: [module]
-related_modules: []
-related_tasks: []
-related_adrs: []
-generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
-verified: []                       # same shape as TASK.verified — never self-verified by an agent
-```
-
-**BRIEF schema** (human-authored task requirements, stored in `_docs/tasks/briefs/`):
-```yaml
-type: Brief                        # REQUIRED (OKF) — concept category
-id: BRIEF-TASK-NNN
-task_id: TASK-NNN
-title: "Brief: [Task Name]"
-project: "project-name"
-author: human
-status: "ready"                    # draft | ready | revised
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-tags: [brief]
-```
-
-**PLAN schema** (agent-generated technical plan, stored in `_docs/tasks/plans/`):
-```yaml
-type: Plan                         # REQUIRED (OKF) — concept category
-id: PLAN-TASK-NNN
-task_id: TASK-NNN
-title: "Implementation Plan: [Task Name]"
-project: "project-name"
-status: "proposed"                 # proposed | approved | in-progress | completed
-created: YYYY-MM-DD
-updated: YYYY-MM-DD
-generated: { by: "agent:<agent-id>", at: "<ISO8601>" }
-tags: [plan]
-```
 
 ### 5. Cross-linking (OKF-conformant — replaces Obsidian wikilinks)
 
