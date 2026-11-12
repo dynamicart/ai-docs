@@ -16,8 +16,7 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 |---------|---------|--------------|-------------|------|
 | | | | | |
 
-> "Called from" should point at a file or entry point (see `ENTRYPOINTS.md`) so an agent
-> can trace the actual call site instead of guessing.
+> "Called from" = a file or entry point (see `ENTRYPOINTS.md`).
 
 ## Outbound webhooks (this project calls out)
 
@@ -27,8 +26,7 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 
 ## Inbound webhooks (external service calls this project)
 
-> Cross-reference with `ENTRYPOINTS.md` § Webhooks — this table adds the "who" and "why",
-> that file has the "where".
+> Cross-ref `ENTRYPOINTS.md` § Webhooks: this adds "who"/"why", that has "where".
 
 | Source | Endpoint | Purpose |
 |--------|----------|---------|
@@ -36,8 +34,7 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 
 ## Credentials / API keys — where they live
 
-> Names and locations only, never actual values — see `CONFIG-ENV.md` for the full env var
-> list. This section is just the cross-reference from "service" to "where its key is set".
+> Names/locations only, never values; full list in `CONFIG-ENV.md`.
 
 | Service | Env var name(s) | Set where |
 |---------|-------------------|-----------|

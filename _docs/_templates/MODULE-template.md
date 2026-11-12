@@ -10,7 +10,7 @@ owner: ""
 created: 2025-01-01
 updated: 2025-01-01
 stale_after: 90
-# days since last full human verification before the module should be treated as needs-review
+# days since last full human verification before needs-review
 tags:
   - module
 related_modules: []
@@ -22,17 +22,11 @@ verified: []
 
 # MODULE: Module Name
 
-> Note (OKF): unlike TASK/JOURNAL, a MODULE file describes a durable code unit, not a
-> single work session — it does not get archived when "done". It sits between the
-> project-wide `arch/*.md` files and the work-scoped `tasks/`/`journal/` files: one file
-> per logical module, kept current for as long as the module exists. `verified` here
-> follows the same shape as the TASK schema (a list of human approval records) — an agent
-> must never self-verify a module file.
+> Note (OKF): durable code-unit reference, never archived; one file per logical module, kept current while it exists. `verified` = human approval records (same shape as TASK); an agent must never self-verify.
 
 ## Responsibility
 
-> 1-3 sentences: what this module's job is in the system. Do NOT describe HOW it does it
-> (that belongs in the code) — only WHY it exists and WHAT it guarantees to other modules.
+> 1-3 sentences: WHY it exists and WHAT it guarantees to other modules — not HOW (that's the code).
 
 ## Location in code
 
@@ -43,8 +37,7 @@ verified: []
 | Entry point(s) | | e.g. controller, service, CLI command |
 | Configuration | | if the module has module-specific config |
 
-> Give only the minimum needed for navigation — do not list files here, the agent will
-> grep/glob further from this starting point.
+> Minimum for navigation; don't list files.
 
 ## Dependencies
 
@@ -54,35 +47,30 @@ verified: []
 **Depended on by:**
 - `modules/yyy.md` — what it uses from this module
 
-> Only cross-module dependencies that are NOT already obvious from `use`/import
-> statements — e.g. implicit ordering, runtime coupling, shared DB-level state.
+> Only non-obvious cross-module coupling (implicit ordering, runtime coupling, shared DB state).
 
 ## Key decisions
 
-> Short, terse bullets — do not repeat the ADR, just point to it.
+> Terse bullets; point to the ADR, don't repeat it.
 
 - **Decision:** ... — see [ADR-0xx](/DECISIONS-LOG.md#adr-0xx)
 - **Deliberate constraint:** ... (e.g. "no caching, because...")
 
 ## Invariants — do not break
 
-> The single most important section for an agent: rules the code does not enforce with an
-> explicit error, but breaking them causes failures elsewhere. E.g. "Invoice.total is
-> always stored in cents", "UserRepository never calls Billing directly".
+> Most important section: rules the code doesn't enforce but whose breakage fails elsewhere. E.g. "Invoice.total is always stored in cents".
 
 -
 
 ## Known limitations / technical debt
 
-> Things an agent might be tempted to "fix" but are deliberate, or known-incomplete
-> without capacity to address yet.
+> Deliberate or known-incomplete things an agent might be tempted to "fix".
 
 -
 
 ## Related tasks
 
-> Dataview query, kept for automation; explicit links still help an agent get context
-> fast even where Dataview isn't available (e.g. a generic OKF consumer).
+> Dataview query; add explicit links where Dataview isn't available.
 
 ```dataview
 TABLE status, priority, updated
@@ -91,13 +79,11 @@ WHERE contains(related_modules, "module-name")
 SORT file.ctime DESC
 ```
 
-> The query matches on the TASK frontmatter's `related_modules` field — add this module's id
-> there when a task touches it, otherwise the table stays empty.
+> Matches TASK `related_modules` — add this module's id there, or the table stays empty.
 
 ## Change log (brief)
 
-> Only SIGNIFICANT structural changes, not every commit. Details live in
-> JOURNAL / `_docs/log.md` — this only records "what happened to this module" at a glance.
+> Only significant structural changes; details live in JOURNAL / `_docs/log.md`.
 
 | Date | Change | Task/ADR |
 |---|---|---|

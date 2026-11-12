@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.5] - 2026-11-12
+
+### Changed
+- **Token-efficiency pass** over all workflows, the documentation skill, the style guide and the templates — same behaviour, roughly half the instruction text to load. Approval gates, "do not ask back" rules and output messages are unchanged.
+- Style guide restructured into three sections; the end-of-task maintenance routine is now **§3** (was §5).
+- Documentation skill: `name` is now `documentation`; the YAML schemas moved to the new on-demand `references/schemas.md`.
+- `agent.md` / `AGENT-template.md` / `/agent-sync`: leaner format (under ~50 lines); the legacy boundary marker is still recognised.
+- `_docs/_templates/*.md`: shorter guidance text (~18% smaller); frontmatter, headings and placeholders unchanged.
+
+### Added
+- `.agents/skills/documentation/references/schemas.md`: TASK, JOURNAL, MODULE, BRIEF and PLAN frontmatter schemas with field rules.
+
 ## [0.4.0] - 2026-10-28
 
 ### Added

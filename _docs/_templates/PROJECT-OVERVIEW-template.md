@@ -22,13 +22,11 @@ links:
 
 # Project Name — Overview
 
-> Note (OKF): this is the rich, human-facing project map (Dataview-enabled). The lean,
-> frontmatter-minimal OKF entry point for the bundle is `_docs/index.md` — see there for
-> the plain link-list a generic OKF consumer would start from.
+> Note (OKF): rich, human-facing project map (Dataview-enabled). The lean OKF entry point is `_docs/index.md`.
 
 ## What is it for?
 
-> One paragraph: what is this, who is it for, what is its essence.
+> One paragraph: what it is, who it's for.
 
 ## Goals
 
@@ -37,7 +35,7 @@ links:
 
 ## Technical stack
 
-> Briefly justified why these were chosen.
+> Brief justification of choices.
 
 | Layer | Technology | Note |
 |-------|-------------|------------|
@@ -92,7 +90,7 @@ LIMIT 10
 
 ## Major decisions (summary)
 
-> DECISIONS-LOG provides details, here only the most important ones.
+> Only the most important; details in DECISIONS-LOG.
 
 - 
 
@@ -102,14 +100,13 @@ LIMIT 10
 
 ## Development directions
 
-> What is planned but not yet recorded as a task.
+> Planned but not yet a task.
 
 - 
 
 ## Log (recent changes)
 
-> Brief entries on what changed in the project. Date + one line.
-> For the full, OKF-conformant chronological record see `_docs/log.md`.
+> Date + one line; full history in `_docs/log.md`.
 
 | Date | Change |
 |-------|----------|

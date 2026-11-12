@@ -17,28 +17,26 @@ tags:
 
 ## 1. Goal and Background
 
-> In 1-2 paragraphs: What problem are we solving? Why is this needed now, and what is the expected business or user value?
+> 1-2 paragraphs: problem, why now, expected value.
 
 ## 2. Requirements & Business Logic
 
-> Specific requirements, functionality, business rules, field validations, roles, and permissions.
-> Keep items distinct and unambiguous.
+> Requirements, business rules, validations, roles/permissions; distinct and unambiguous.
 
 - 
 - 
 
 ## 3. UI / UX Expectations
 
-> Screen layout, user flow, wireframes, mockups, or interaction constraints (if applicable).
-> Leave empty or mark N/A for backend/CLI tasks.
+> Layout, flow, mockups, interaction constraints; N/A for backend/CLI.
 
 ## 4. Acceptance Criteria
 
-> Verifiable conditions that must be true for this task to be considered complete.
+> Verifiable completion conditions.
 
 - [ ] 
 - [ ] 
 
 ## 5. Notes, Constraints & Non-Goals
 
-> Technical limitations, external dependencies, or explicitly excluded features (out of scope).
+> Limitations, dependencies, out-of-scope items.

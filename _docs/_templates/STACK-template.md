@@ -6,9 +6,7 @@ updated: 2025-01-01
 generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 ---
 
-> Note (OKF): this is a *live reference* document — unlike TASK/JOURNAL it has no history
-> requirement and gets overwritten in place as the stack changes. Keep it short; link out
-> to composer.json / package.json rather than duplicating version numbers that will drift.
+> Note (OKF): live reference, overwritten in place. Keep short; link to composer.json / package.json instead of duplicating versions.
 
 # Stack — [Project Name]
 
@@ -23,8 +21,7 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 
 ## Key dependencies (composer.json)
 
-> List only the dependencies that actually shape how the codebase is built
-> (ORM, router, templating, auth) — not every transitive package.
+> Only dependencies shaping the build (ORM, router, templating, auth); no transitive packages.
 
 | Package | Purpose | Note |
 |---------|---------|------|
@@ -40,9 +37,9 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 
 ## Autoloading / bootstrap
 
-> How does a request start? PSR-4 autoload root, bootstrap file, front controller.
+> How a request starts: PSR-4 root, bootstrap, front controller.
 
 ## Why this stack (link, don't duplicate)
 
-> If the choice was a deliberate decision, link the ADR instead of re-explaining it here:
+> Link the ADR instead of re-explaining:
 > [ADR-NNN](/DECISIONS-LOG.md#adr-nnn)

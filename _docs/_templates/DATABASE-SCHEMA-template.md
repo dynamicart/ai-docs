@@ -6,10 +6,7 @@ updated: 2025-01-01
 generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 ---
 
-> Note (OKF): live reference, overwritten in place. If the project has migrations, this
-> file should be a curated summary generated FROM them (don't hand-maintain both as
-> separate sources of truth) — regenerate after migrations change the schema. If there are
-> no migrations, this file IS the source of truth and must be kept accurate by hand.
+> Note (OKF): live reference, overwritten in place. With migrations: curated summary generated FROM them (regenerate when they change). Without: this file IS the source of truth, keep it accurate by hand.
 
 # Database Schema — [Project Name]
 
@@ -21,8 +18,7 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 
 ## Tables
 
-> One subsection per table that agents actually touch. Skip pure lookup/log tables unless
-> they matter for a task. Full authoritative schema always lives in the DB / migrations.
+> One subsection per table agents touch; skip lookup/log tables unless relevant. Authoritative schema lives in DB/migrations.
 
 ### `table_name`
 
@@ -39,12 +35,10 @@ generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 
 ## Entity relationship summary
 
-> Short prose or a simple list of the core relations — full ERD as a diagram belongs in
-> `arch/` as a separate asset if one exists, linked here.
+> Core relations; link a full ERD from `arch/` if one exists.
 
 ## Known schema debt
 
-> Denormalization, naming inconsistencies, columns that are effectively deprecated but
-> still present — anything that would mislead an agent inferring intent from the schema.
+> Denormalization, naming inconsistencies, effectively deprecated columns — anything misleading.
 
 -

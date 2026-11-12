@@ -6,9 +6,7 @@ updated: 2025-01-01
 generated: { by: "agent:manual", at: "2025-01-01T00:00:00Z" }
 ---
 
-> Note (OKF): live reference, overwritten in place. Regenerate whenever the top-level
-> folder structure changes meaningfully (new module, renamed root folder) — not on every
-> file add. Depth: stop at the level that's still meaningful; don't enumerate every file.
+> Note (OKF): live reference, overwritten in place. Regenerate on meaningful top-level structure changes, not every file add; don't enumerate files.
 
 # Directory Map — [Project Name]
 
@@ -30,9 +28,7 @@ project-root/
 
 ## Folder-by-folder notes
 
-> For each top-level (and meaningful second-level) folder: what lives there, what the
-> naming/organizing convention is, and anything an agent must NOT assume (e.g. "looks like
-> MVC but Models also do direct output — see TASK-003").
+> Per meaningful folder: contents, naming convention, and what an agent must NOT assume (e.g. "looks like MVC but Models also output directly").
 
 ### `public/`
 
@@ -48,7 +44,6 @@ project-root/
 
 ## Known inconsistencies / legacy pockets
 
-> Be honest here — PHP codebases often mix conventions across eras. Flag anything that
-> looks like a pattern but isn't, so an agent doesn't over-generalize from one example.
+> Flag anything that looks like a pattern but isn't, so agents don't over-generalize.
 
 -
